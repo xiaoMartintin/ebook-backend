@@ -1,6 +1,7 @@
 package com.klx.ebookbackend.controller;
 
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @RestController
@@ -19,13 +20,12 @@ public class CartController {
 
         // 示例购物车项目
         Map<String, Object> item = new HashMap<>();
-        item.put("id", "1");
-        item.put("userId", "1");
-        item.put("quantity", 1);
+        item.put("id", 1);
+        item.put("number", 1);
 
         // 获取书籍详细信息
         Map<String, Object> bookDetails = bookController.getBookById(1);
-        item.put("book", bookDetails);  // 将书籍详细信息放入购物车项中
+        item.put("book", bookDetails);
 
         cartItems.add(item);
         return cartItems;
@@ -37,15 +37,14 @@ public class CartController {
     }
 
     @PutMapping
-    public Map<String, Object> addCartItem(@RequestParam int bookId, @RequestParam int quantity, @RequestParam String userId) {
+    public Map<String, Object> addCartItem(@RequestParam int bookId, @RequestParam int number) {
         Map<String, Object> newItem = new HashMap<>();
         newItem.put("id", UUID.randomUUID().toString());
-        newItem.put("userId", userId);
-        newItem.put("quantity", quantity);
+        newItem.put("number", number);
 
         // 获取书籍详细信息
         Map<String, Object> bookDetails = bookController.getBookById(bookId);
-        newItem.put("book", bookDetails);  // 将书籍详细信息放入购物车项中
+        newItem.put("book", bookDetails);
 
         return Collections.singletonMap("status", "success");
     }

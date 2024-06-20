@@ -36,7 +36,7 @@ public class UserController {
         Map<String, String> user = users.get(username);
         if (user != null && user.get("password").equals(password)) {
             Map<String, Object> response = new HashMap<>();
-            response.put("id", user.get("id"));
+            response.put("id", Integer.parseInt(user.get("id")));
             response.put("username", user.get("username"));
             response.put("email", user.get("email"));
             response.put("nickname", user.get("nickname"));
@@ -55,7 +55,7 @@ public class UserController {
     @GetMapping("/user/me")
     public Map<String, Object> getMe() {
         Map<String, Object> user = new HashMap<>();
-        user.put("id", "1");
+        user.put("id", 1);
         user.put("username", "sampleuser");
         user.put("email", "user@example.com");
         return user;
