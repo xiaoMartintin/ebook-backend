@@ -1,5 +1,7 @@
 package com.klx.ebookbackend.controller;
 
+import com.klx.ebookbackend.service.BookService;
+import com.klx.ebookbackend.entity.Book;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -9,9 +11,11 @@ import java.util.*;
 public class OrderController {
 
     private final BookController bookController;
+    private final BookService bookService;
 
-    public OrderController(BookController bookController) {
+    public OrderController(BookController bookController, BookService bookService) {
         this.bookController = bookController;
+        this.bookService = bookService;
     }
 
     @PostMapping
@@ -45,10 +49,10 @@ public class OrderController {
         for (int itemId : itemIds) {
             Map<String, Object> item = new HashMap<>();
             item.put("id", itemId);
-            Map<String, Object> bookDetails = bookController.getBookById(itemId);
-            // 检查bookDetails是否为空
-            if (bookDetails != null) {
-                item.put("book", bookDetails);
+            Book book1 = bookService.getBookById(itemId);
+            // 检查book1是否为空
+            if (book1 != null) {
+                item.put("book", book1);
                 item.put("number", 1);  // 假设每个订单项的数量为1
                 items.add(item);
             }

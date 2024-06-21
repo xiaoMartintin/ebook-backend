@@ -1,72 +1,72 @@
 package com.klx.ebookbackend.controller;
 
+import com.klx.ebookbackend.entity.Book;
+import com.klx.ebookbackend.service.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class BookController {
 
-    private List<Map<String, Object>> books = new ArrayList<>();
+    private final BookService bookService;
 
-    public BookController() {
-        // 初始化一些书籍数据
-        addBook(1, "9787573604309", "狂飙 原著", "徐纪周朱俊懿", 30, "《狂飙 原著》由徐纪周朱俊懿创作，真实还原扫黑除恶第一线，以横跨20年的群像叙事方式全景式地展现时代变迁下的黑白较量与复杂人性。", 998, "http://img3m0.ddimg.cn/28/9/11359708300-1_b_1.jpg", 5);
-        addBook(2, "9787517825692", "泰戈尔诗集", "泰戈尔", 9, "《泰戈尔诗集》是印度著名诗人泰戈尔的代表作，包含《新月集》和《飞鸟集》，这些诗集因其深刻的哲理和美妙的语言获得了诺贝尔文学奖。", 998, "http://img3m5.ddimg.cn/57/13/26514435-1_b_11.jpg", 3);
-        addBook(3, "9787111213826", "Java编程思想", "Bruce Eckel", 91, "《Java编程思想》是Bruce Eckel的经典著作，是每个Java程序员的必读书籍，详细讲解了Java的核心概念和高级编程技巧。", 9095, "http://img3m0.ddimg.cn/4/24/9317290-1_w_5.jpg", 8);
-    }
-
-    private void addBook(int id, String isbn, String title, String author, double price, String description, int inventory, String cover, int sales) {
-        Map<String, Object> book = new HashMap<>();
-        book.put("id", id);
-        book.put("isbn", isbn);
-        book.put("title", title);
-        book.put("author", author);
-        book.put("price", price);
-        book.put("description", description);
-        book.put("inventory", inventory);
-        book.put("cover", cover);
-        book.put("sales", sales);
-        books.add(book);
+    @Autowired
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
     }
 
     @GetMapping("/books")
-    public Map<String, Object> searchBooks(@RequestParam(required = false) String keyword, @RequestParam int pageIndex, @RequestParam int pageSize) {
-        if (keyword == null) {
-            keyword = "";
-        }
-        List<Map<String, Object>> filteredBooks = new ArrayList<>();
-        for (Map<String, Object> book : books) {
-            if ((book.get("title") != null && book.get("title").toString().toLowerCase().contains(keyword.toLowerCase())) ||
-                    (book.get("author") != null && book.get("author").toString().toLowerCase().contains(keyword.toLowerCase()))) {
-                filteredBooks.add(book);
-            }
-        }
-        int start = Math.max((pageIndex - 1) * pageSize, 0);
-        int end = Math.min(start + pageSize, filteredBooks.size());
-        List<Map<String, Object>> paginatedBooks = filteredBooks.subList(start, end);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("total", filteredBooks.size());
-        response.put("items", paginatedBooks);
-        return response;
+    public ResponseEntity<PagedBooks> searchBooks(@RequestParam String keyword, @RequestParam int pageIndex, @RequestParam int pageSize) {
+        List<Book> books = bookService.searchBooks(keyword, pageIndex, pageSize);
+        int total = bookService.getTotalBooksCount(keyword);
+        PagedBooks pagedBooks = new PagedBooks(books, total);
+        return ResponseEntity.ok(pagedBooks);
     }
 
     @GetMapping("/book/{id}")
-    public Map<String, Object> getBookById(@PathVariable int id) {
-        for (Map<String, Object> book : books) {
-            if ((int) book.get("id") == id) {
-                return book;
-            }
+    public ResponseEntity<Book> getBookById(@PathVariable int id) {
+        Book book = bookService.getBookById(id);
+        if (book != null) {
+            return ResponseEntity.ok(book);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        return Collections.singletonMap("error", "Book not found");
     }
 
     @GetMapping("/books/rank")
-    public List<Map<String, Object>> getTop10BestSellingBooks() {
-        List<Map<String, Object>> topSellingBooks = new ArrayList<>(books);
-        topSellingBooks.sort((b1, b2) -> Integer.compare((int) b2.get("sales"), (int) b1.get("sales")));
-        return topSellingBooks.subList(0, Math.min(10, topSellingBooks.size()));
+    public ResponseEntity<List<Book>> getTop10BestSellingBooks() {
+        List<Book> books = bookService.getTop10BestSellingBooks();
+        return ResponseEntity.ok(books);
+    }
+
+    public static class PagedBooks {
+        private List<Book> items;
+        private int total;
+
+        public PagedBooks(List<Book> items, int total) {
+            this.items = items;
+            this.total = total;
+        }
+
+        public List<Book> getItems() {
+            return items;
+        }
+
+        public void setItems(List<Book> items) {
+            this.items = items;
+        }
+
+        public int getTotal() {
+            return total;
+        }
+
+        public void setTotal(int total) {
+            this.total = total;
+        }
     }
 }

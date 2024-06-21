@@ -1,6 +1,10 @@
 package com.klx.ebookbackend.controller;
 
+import com.klx.ebookbackend.entity.Book;
+import com.klx.ebookbackend.service.BookService;
+import com.klx.ebookbackend.service.BookService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -9,9 +13,11 @@ import java.util.*;
 public class CartController {
 
     private final BookController bookController;
+    private final BookService bookService;
 
-    public CartController(BookController bookController) {
+    public CartController(BookController bookController, BookService bookService) {
         this.bookController = bookController;
+        this.bookService = bookService;
     }
 
     @GetMapping
@@ -24,8 +30,8 @@ public class CartController {
         item.put("number", 1);
 
         // 获取书籍详细信息
-        Map<String, Object> bookDetails = bookController.getBookById(1);
-        item.put("book", bookDetails);
+        Book book1 = bookService.getBookById(1);
+        item.put("book", book1);
 
         cartItems.add(item);
         return cartItems;
@@ -43,8 +49,8 @@ public class CartController {
         newItem.put("number", number);
 
         // 获取书籍详细信息
-        Map<String, Object> bookDetails = bookController.getBookById(bookId);
-        newItem.put("book", bookDetails);
+        Book book2 = bookService.getBookById(bookId);
+        newItem.put("book", book2);
 
         return Collections.singletonMap("status", "success");
     }
