@@ -24,7 +24,7 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     List<Book> findAll();
 
     @Override
-    Book save(Book book);
+    <S extends Book> S save(S entity);
 
     @Override
     void deleteById(Integer integer);
@@ -32,11 +32,9 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @Override
     Optional<Book> findById(Integer integer);
 
-    @Query("SELECT b.id, b.title, b.author, b.description, b.price, b.image, SUM(oi.quantity) as sales " +
+    @Query("SELECT b.id, b.title, b.author, b.description, b.price, b.cover, SUM(oi.quantity) as sales " +
             "FROM OrderItem oi JOIN oi.book b " +
-            "GROUP BY b.id, b.title, b.author, b.description, b.price, b.image " +
+            "GROUP BY b.id, b.title, b.author, b.description, b.price, b.cover " +
             "ORDER BY SUM(oi.quantity) DESC")
-    List<Book> findTopSellingBooks();
-
-
+    List<Object[]> findTopSellingBooks();
 }

@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class BookDaoImpl implements BookDao {
@@ -44,7 +45,18 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public List<Book> getTopSellingBooks() {
-        return bookRepository.findTopSellingBooks();
+        List<Object[]> results = bookRepository.findTopSellingBooks();
+        return results.stream().map(result -> {
+            Book book = new Book();
+            book.setId((Integer) result[0]);
+            book.setTitle((String) result[1]);
+            book.setAuthor((String) result[2]);
+            book.setDescription((String) result[3]);
+            book.setPrice((Double) result[4]);
+            book.setCover((String) result[5]);
+            book.setSales(((Number) result[6]).intValue());
+            return book;
+        }).collect(Collectors.toList());
     }
 
     @Override

@@ -1,62 +1,74 @@
 package com.klx.ebookbackend.controller;
 
-import com.klx.ebookbackend.entity.Book;
-import com.klx.ebookbackend.service.BookService;
-import com.klx.ebookbackend.service.BookService;
-import org.springframework.web.bind.annotation.*;
+import com.klx.ebookbackend.entity.Cart;
+import com.klx.ebookbackend.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
 
-    private final BookController bookController;
-    private final BookService bookService;
+    private final CartService cartService;
 
-    public CartController(BookController bookController, BookService bookService) {
-        this.bookController = bookController;
-        this.bookService = bookService;
+    @Autowired
+    public CartController(CartService cartService) {
+        this.cartService = cartService;
     }
 
     @GetMapping
-    public List<Map<String, Object>> getCartItems() {
-        List<Map<String, Object>> cartItems = new ArrayList<>();
-
-        // 示例购物车项目
-        Map<String, Object> item = new HashMap<>();
-        item.put("id", 1);
-        item.put("number", 1);
-
-        // 获取书籍详细信息
-        Book book1 = bookService.getBookById(1);
-        item.put("book", book1);
-
-        cartItems.add(item);
-        return cartItems;
-    }
-
-    @DeleteMapping("/{id}")
-    public Map<String, Object> deleteCartItem(@PathVariable String id) {
-        return Collections.singletonMap("status", "success");
+    public ResponseEntity<?> getUserItems(HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
+        }
+        List<Cart> cartItems = cartService.getCartItems(userId);
+        return ResponseEntity.ok(createResponse("Cart items retrieved", true, cartItems));
     }
 
     @PutMapping
-    public Map<String, Object> addCartItem(@RequestParam int bookId, @RequestParam int number) {
-        Map<String, Object> newItem = new HashMap<>();
-        newItem.put("id", UUID.randomUUID().toString());
-        newItem.put("number", number);
-
-        // 获取书籍详细信息
-        Book book2 = bookService.getBookById(bookId);
-        newItem.put("book", book2);
-
-        return Collections.singletonMap("status", "success");
+    public ResponseEntity<?> addCartItem(@RequestParam Integer bookId, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
+        }
+        int quantity = 1; // 默认数量为 1
+        cartService.addCartItem(userId, bookId, quantity);
+        return ResponseEntity.ok(createResponse("Item added to cart", true, null));
     }
 
     @PutMapping("/{id}")
-    public Map<String, Object> changeCartItemNumber(@PathVariable String id, @RequestParam int number) {
-        return Collections.singletonMap("status", "success");
+    public ResponseEntity<?> updateItem(@PathVariable Integer id, @RequestParam int number, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
+        }
+        cartService.changeCartItemQuantity(id, number);
+        return ResponseEntity.ok(createResponse("Cart item quantity updated", true, null));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteItem(@PathVariable Integer id, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
+        }
+        cartService.deleteCartItem(id);
+        return ResponseEntity.ok(createResponse("Cart item deleted", true, null));
+    }
+
+    private Map<String, Object> createResponse(String message, boolean ok, Object data) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", message);
+        response.put("ok", ok);
+        response.put("data", data);
+        return response;
     }
 }

@@ -1,6 +1,5 @@
 package com.klx.ebookbackend.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -13,16 +12,14 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:3000"); // 允许的来源
+        config.addAllowedOriginPattern("*"); // Allow all origins
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-        config.setAllowCredentials(true);
-
+        config.setAllowCredentials(true); // Allow cookies to be included
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // 对所有URL应用配置
+        source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
     }
-
 }

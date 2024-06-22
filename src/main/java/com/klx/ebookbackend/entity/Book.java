@@ -38,16 +38,16 @@ public class Book {
     private Integer inventory;
 
     @Column(name = "image", nullable = false)
-    private String image;
+    private String cover;
 
     @Column(name = "sales", nullable = false)
-    private Integer cover;
+    private Integer sales;
+
 
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Cart> carts = new LinkedHashSet<>();
 
-    @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
 
@@ -55,7 +55,4 @@ public class Book {
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Comment> comments = new LinkedHashSet<>();
 
-    public String getCover() {
-        return image;
-    }
 }
