@@ -1,90 +1,129 @@
 package com.klx.ebookbackend.controller;
 
+import com.klx.ebookbackend.entity.Order;
+import com.klx.ebookbackend.entity.OrderItem;
+import com.klx.ebookbackend.service.OrderService;
+import com.klx.ebookbackend.service.UserService;
 import com.klx.ebookbackend.service.BookService;
-import com.klx.ebookbackend.entity.Book;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
+import java.time.Instant;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/order")
 public class OrderController {
 
-    private final BookController bookController;
-    private final BookService bookService;
+    @Autowired
+    private OrderService orderService;
 
-    public OrderController(BookController bookController, BookService bookService) {
-        this.bookController = bookController;
-        this.bookService = bookService;
-    }
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private BookService bookService;
 
     @PostMapping
-    public Map<String, Object> placeOrder(@RequestBody Map<String, Object> orderInfo) {
-        // 打印订单信息到Tomcat Console
-        System.out.println("Order received: " + orderInfo);
-
-        // 提取并验证订单信息
-        Integer userId = (Integer) orderInfo.get("userId");
-        String address = (String) orderInfo.get("address");
-        String receiver = (String) orderInfo.get("receiver");
-        String tel = (String) orderInfo.get("tel");
-        List<Integer> itemIds = (List<Integer>) orderInfo.get("itemIds");
-
-        // 检查orderInfo中的必需字段是否为空
-        if (userId == null || address == null || receiver == null || tel == null || itemIds == null) {
-            return Collections.singletonMap("status", "failure");
+    public ResponseEntity<?> placeOrder(@RequestBody OrderInfo orderInfo, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("User not logged in", false, null));
         }
 
-        // 创建订单对象
-        Map<String, Object> order = new HashMap<>();
-        order.put("id", UUID.randomUUID().toString());
-        order.put("user_id", userId);
-        order.put("address", address);
-        order.put("receiver", receiver);
-        order.put("tel", tel);
-        order.put("createdAt", new Date());
+        String address = orderInfo.getAddress();
+        String receiver = orderInfo.getReceiver();
+        String tel = orderInfo.getTel();
+        List<Integer> itemIds = orderInfo.getItemIds();
 
-        // 添加订单项
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (int itemId : itemIds) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", itemId);
-            Book book1 = bookService.getBookById(itemId);
-            // 检查book1是否为空
-            if (book1 != null) {
-                item.put("book", book1);
-                item.put("number", 1);  // 假设每个订单项的数量为1
-                items.add(item);
-            }
+        if (address == null || receiver == null || tel == null || itemIds == null || itemIds.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Invalid order info", false, null));
         }
-        order.put("items", items);
 
-        // 模拟保存订单到数据库或其他存储
-        // 例如，orderService.save(order);
+        Order order = new Order();
+        order.setAddress(address);
+        order.setReceiver(receiver);
+        order.setTel(tel);
+        order.setTime(Instant.now());
+        order.setUser(userService.getUserById(userId).orElse(null));
 
-        // 返回确认消息
-        return Collections.singletonMap("status", "success");
+        Set<OrderItem> orderItems = new LinkedHashSet<>();
+        for (Integer itemId : itemIds) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setBook(bookService.getBookById(itemId));
+            orderItem.setQuantity(1); // 假设每个商品数量为1，具体需求可调整
+            orderItems.add(orderItem);
+        }
+
+        order.setOrderItems(orderItems);
+        orderService.placeOrder(order);
+
+        return ResponseEntity.ok(createResponse("Order successfully placed", true, null));
     }
 
     @GetMapping
-    public List<Map<String, Object>> getOrders() {
-        List<Map<String, Object>> orders = new ArrayList<>();
-        Map<String, Object> order = new HashMap<>();
-        order.put("id", 1);
-        order.put("receiver", "John Doe");
-        order.put("address", "123 Main St");
-        order.put("tel", "123-456-7890");
-        order.put("createdAt", new Date().toString());
+    public ResponseEntity<?> getOrders(HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("User not logged in", false, null));
+        }
 
-        List<Map<String, Object>> items = new ArrayList<>();
-        Map<String, Object> item = new HashMap<>();
-        item.put("id", 1);
-        item.put("book", Collections.singletonMap("title", "Sample Book"));
-        item.put("number", 1);
-        items.add(item);
+        Optional<Order> optionalOrder = orderService.getOrders(userId);
+        List<Order> orders = optionalOrder.map(Collections::singletonList).orElse(Collections.emptyList());
 
-        order.put("items", items);
-        orders.add(order);
-        return orders;
+        return ResponseEntity.ok(orders);
+    }
+
+    private Map<String, Object> createResponse(String message, boolean ok, Object data) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", message);
+        response.put("ok", ok);
+        response.put("data", data);
+        return response;
+    }
+
+    public static class OrderInfo {
+        private String address;
+        private String receiver;
+        private String tel;
+        private List<Integer> itemIds;
+
+        // Getters and Setters
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getReceiver() {
+            return receiver;
+        }
+
+        public void setReceiver(String receiver) {
+            this.receiver = receiver;
+        }
+
+        public String getTel() {
+            return tel;
+        }
+
+        public void setTel(String tel) {
+            this.tel = tel;
+        }
+
+        public List<Integer> getItemIds() {
+            return itemIds;
+        }
+
+        public void setItemIds(List<Integer> itemIds) {
+            this.itemIds = itemIds;
+        }
     }
 }
