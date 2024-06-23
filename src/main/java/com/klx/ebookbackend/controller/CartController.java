@@ -45,12 +45,12 @@ public class CartController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateItem(@PathVariable Integer id, @RequestParam int number, HttpSession session) {
+    public ResponseEntity<?> updateItem(@PathVariable Integer id, @RequestParam int quantity, HttpSession session) {
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
         }
-        cartService.changeCartItemQuantity(id, number);
+        cartService.changeCartItemQuantity(id, quantity);
         return ResponseEntity.ok(createResponse("Cart item quantity updated", true, null));
     }
 

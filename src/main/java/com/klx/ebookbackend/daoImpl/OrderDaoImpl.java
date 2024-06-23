@@ -30,8 +30,8 @@ public class OrderDaoImpl implements OrderDao {
         return orderRepository.findById(id);
     }
     @Override
-    public Optional<Order> getOrdersByUserId(int userId){
-        List<Order> orders = orderRepository.findByUserId(userId);
-        return orders.isEmpty() ? Optional.empty() : Optional.of(orders.get(0));
+    public List<Order> getOrdersByUserId(int userId) {
+        return orderRepository.findByUserId(userId);
     }
+
 }

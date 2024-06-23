@@ -17,6 +17,11 @@ public class CartServiceImpl implements CartService {
     private CartDao cartDao;
 
     @Override
+    public Optional<Cart> getCartById(Integer id){
+        return cartDao.getCartById(id);
+    }
+
+    @Override
     public List<Cart> getCartItems(Integer userId) {
         List<Cart> cartItems = cartDao.getCartItems(userId);
         // 确保每个Cart对象都有一个非空的Book对象

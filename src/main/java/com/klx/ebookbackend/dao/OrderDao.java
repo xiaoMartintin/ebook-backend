@@ -8,5 +8,5 @@ public interface OrderDao {
     Order saveOrder(Order order);
     void deleteOrder(int id);
     Optional<Order> getOrderById(int id);
-    Optional<Order> getOrdersByUserId(int userId);
+    List<Order> getOrdersByUserId(int userId);
 }

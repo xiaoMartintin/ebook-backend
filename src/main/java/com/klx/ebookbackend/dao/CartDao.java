@@ -15,5 +15,4 @@ public interface CartDao {
     List<Cart> getCartItems(Integer userId);
     void addCartItem(User user, Book book, int quantity);
     void changeCartItemNumber(int id, int number);
-
 }
