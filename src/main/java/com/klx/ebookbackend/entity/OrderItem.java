@@ -56,6 +56,7 @@ public class OrderItem {
 }
 
 
+
 //重要！！！
 //在 OrderItem 类中的 Book 字段上使用了 @JsonBackReference，这会导致在序列化时忽略 Book 字段。因此，前端看不到 Book 对象中的数据。
 //要解决这个问题，你可以将 OrderItem 类中的 Book 字段的注解修改为 @JsonManagedReference，并确保 Book 类中的 OrderItem 字段保持 @JsonBackReference 注解。
