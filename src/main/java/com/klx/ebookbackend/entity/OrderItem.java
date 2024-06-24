@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Getter
 @Setter
@@ -34,6 +36,8 @@ public class OrderItem {
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
+
 
     @PrePersist
     @PreUpdate

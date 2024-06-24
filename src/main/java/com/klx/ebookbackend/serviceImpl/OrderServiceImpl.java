@@ -10,8 +10,10 @@ import com.klx.ebookbackend.entity.OrderItem;
 import com.klx.ebookbackend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 
 import java.util.*;
+import java.time.*;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -28,31 +30,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrders(Integer userId) {
+    public List<Order> getOrders(Integer userId, String keyword, LocalDate startDate, LocalDate endDate) {
         List<Order> orders = new ArrayList<>();
         try {
-            List<Order> fetchedOrders = orderDao.getOrdersByUserId(userId);
+            Instant startInstant = startDate != null ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
+            Instant endInstant = endDate != null ? endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
+            List<Order> fetchedOrders = orderDao.findOrders(userId, keyword, startInstant, endInstant);
             for (Order order : fetchedOrders) {
                 List<OrderItem> orderItems = orderItemDao.getOrderItemsByOrder(order);
                 for (OrderItem orderItem : orderItems) {
                     //给每一个OrderItem都设置book
                     Book book = bookDao.getBookById(orderItem.getBook().getId());
-                    //打印一下book
                     orderItem.setBook(book);
                 }
                 order.setOrderItems(new LinkedHashSet<>(orderItems));
                 orders.add(order);
             }
-
-            //debug
-            for (Order order : fetchedOrders) {
-                Set<OrderItem> orderItems = order.getOrderItems();
-                for (OrderItem orderItem : orderItems) {
-                    System.out.println("book："+orderItem.getBook().getTitle());
-                }
-            }
-
-
         } catch (Exception e) {
             System.err.println("Error fetching orders for user ID: " + userId + " - " + e.getMessage());
         }

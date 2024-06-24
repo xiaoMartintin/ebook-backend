@@ -11,6 +11,7 @@ public interface UserDao {
     User saveUser(User user);
     void deleteUser(int id);
     int validateUser(String username, String password);
+    int validateUserIsEnabled(String username);
     void changePassword(int userId, String newPassword);
     User findUserById(int id);
     User findByUsername(String username);

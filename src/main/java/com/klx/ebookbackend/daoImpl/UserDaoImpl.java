@@ -43,6 +43,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public int validateUserIsEnabled(String username) {
+        return userRepository.validateUserIsEnabled(username);
+    }
+
+    @Override
     public void changePassword(int userId, String newPassword) {
         userRepository.changePassword(userId, newPassword);
     }

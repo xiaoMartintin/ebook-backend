@@ -26,8 +26,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean login(String username, String password) {
+    public boolean isPasswordCorrect(String username, String password) {
         return userDao.validateUser(username, password) == 1;
+    }
+
+    @Override
+    public boolean isUserEnabled(String username) {
+        return userDao.validateUserIsEnabled(username) == 1;
     }
 
     @Override
@@ -52,6 +57,4 @@ public class UserServiceImpl implements UserService {
     public User saveUser(User user) {
         return userDao.saveUser(user);
     }
-
-
 }

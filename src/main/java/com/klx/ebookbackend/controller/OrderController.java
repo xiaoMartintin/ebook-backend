@@ -9,12 +9,14 @@ import com.klx.ebookbackend.service.CartService;
 import com.klx.ebookbackend.service.UserService;
 import com.klx.ebookbackend.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 @RestController
@@ -107,13 +109,31 @@ public class OrderController {
 
 
     @GetMapping
-    public ResponseEntity<?> getOrders(HttpSession session) {
+    public ResponseEntity<?> getOrders(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            HttpSession session) {
+
+        System.out.println("keyword: " + keyword);
+        System.out.println("startDate: " + startDate);
+        System.out.println("endDate: " + endDate);
+
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("User not logged in", false, null));
         }
 
-        List<Order> orders = orderService.getOrders(userId);
+        List<Order> orders = orderService.getOrders(userId, keyword, startDate, endDate);
+        System.out.println("dead");
+        System.out.println(orders);
+
+        for (Order order : orders) {
+            System.out.println(order.getAddress());
+            System.out.println(order.getReceiver());
+            System.out.println(order.getTel());
+            System.out.println(order.getTime());
+        }
 
         if (orders.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(createResponse("No orders found", true, orders));

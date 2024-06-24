@@ -7,7 +7,8 @@ import java.util.Optional;
 public interface UserService {
     Optional<User> getMe(Integer userId);
     void changePassword(Integer userId, String newPassword);
-    boolean login(String username, String password);
+    boolean isPasswordCorrect(String username, String password);
+    boolean isUserEnabled(String username);
     void logout(Integer userId);
     Optional<User> getUserById(Integer userId);
     User findByUsername(String username);

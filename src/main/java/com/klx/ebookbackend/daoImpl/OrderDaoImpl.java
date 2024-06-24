@@ -6,6 +6,7 @@ import com.klx.ebookbackend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.*;
 
 @Repository
@@ -34,4 +35,8 @@ public class OrderDaoImpl implements OrderDao {
         return orderRepository.findByUserId(userId);
     }
 
+    @Override
+    public List<Order> findOrders(Integer userId, String keyword, Instant startDate, Instant endDate) {
+        return orderRepository.findOrders(userId, keyword, startDate, endDate);
+    }
 }

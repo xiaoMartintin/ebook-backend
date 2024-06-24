@@ -2,14 +2,12 @@ package com.klx.ebookbackend.controller;
 
 import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.service.UserService;
-import com.klx.ebookbackend.utils.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +46,7 @@ public class UserController {
         newUser.setUsername(username);
         newUser.setEmail(email);
         newUser.setNickname(nickname); // 设置昵称
-        newUser.setBalance(1000.0); // Assuming default balance
+        newUser.setBalance(10000.0); // Assuming default balance
         newUser.setIs_admin(0); // Assuming default is non-admin
         newUser.setIs_enabled(1); // Assuming default is enabled
         userService.saveUser(newUser);
@@ -65,16 +63,19 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request, HttpSession session) {
         String username = request.get("username");
         String password = request.get("password");
-        boolean loginSuccess = userService.login(username, password);
+        boolean isPasswordCorrect = userService.isPasswordCorrect(username, password);
+        boolean isUserEnabled = userService.isUserEnabled(username);
         Map<String, Object> response = new HashMap<>();
 
-        if (loginSuccess) {
+        if (!isUserEnabled) {
+            response.put("ok", false);
+            response.put("message", "您的账号已经被禁用");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+
+        if (isPasswordCorrect) {
             User user = userService.findByUsername(username);
             session.setAttribute("userId", user.getId());
-
-            // Debug: Print session ID and attributes
-//            System.out.println("Session ID: " + session.getId());
-//            System.out.println("User ID in session: " + session.getAttribute("userId"));
 
             Map<String, Object> data = new HashMap<>();
             data.put("id", user.getId());
@@ -94,6 +95,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
+
 
     @PutMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
