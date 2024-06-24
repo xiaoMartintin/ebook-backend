@@ -42,6 +42,14 @@ public class OrderItem {
             // 更新库存和销售数量
             book.setInventory(book.getInventory() - this.quantity);
             book.setSales(book.getSales() + this.quantity);
+
+            // 更新用户余额
+            User user = this.order.getUser();
+            double orderItemTotalPrice = this.quantity * this.book.getPrice();
+            user.setBalance(user.getBalance() - orderItemTotalPrice);
+
+            // 更新订单总价
+            this.order.updateTotalPrice();
         }
     }
 
@@ -51,12 +59,14 @@ public class OrderItem {
             // 恢复库存和销售数量
             book.setInventory(book.getInventory() + this.quantity);
             book.setSales(book.getSales() - this.quantity);
+
+            // 恢复用户余额
+            User user = this.order.getUser();
+            double orderItemTotalPrice = this.quantity * this.book.getPrice();
+            user.setBalance(user.getBalance() + orderItemTotalPrice);
+
+            // 更新订单总价
+            this.order.updateTotalPrice();
         }
     }
 }
-
-
-
-//重要！！！
-//在 OrderItem 类中的 Book 字段上使用了 @JsonBackReference，这会导致在序列化时忽略 Book 字段。因此，前端看不到 Book 对象中的数据。
-//要解决这个问题，你可以将 OrderItem 类中的 Book 字段的注解修改为 @JsonManagedReference，并确保 Book 类中的 OrderItem 字段保持 @JsonBackReference 注解。

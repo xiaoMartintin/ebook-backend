@@ -41,7 +41,16 @@ public class Order {
     @Column(name = "tel", nullable = false)
     private String tel;
 
+    @Column(name = "total_price", nullable = false)
+    private Double totalPrice;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
+
+    public void updateTotalPrice() {
+        this.totalPrice = this.orderItems.stream()
+                .mapToDouble(item -> item.getQuantity() * item.getBook().getPrice())
+                .sum();
+    }
 }

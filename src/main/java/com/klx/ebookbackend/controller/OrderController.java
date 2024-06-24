@@ -3,6 +3,7 @@ package com.klx.ebookbackend.controller;
 import com.klx.ebookbackend.entity.Order;
 import com.klx.ebookbackend.entity.Cart;
 import com.klx.ebookbackend.entity.OrderItem;
+import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.service.OrderService;
 import com.klx.ebookbackend.service.CartService;
 import com.klx.ebookbackend.service.UserService;
@@ -56,9 +57,12 @@ public class OrderController {
         order.setReceiver(receiver);
         order.setTel(tel);
         order.setTime(Instant.now());
-        order.setUser(userService.getUserById(userId).orElse(null));
+        User user = userService.getUserById(userId).orElse(null);
+        order.setUser(user);
 
         Set<OrderItem> orderItems = new LinkedHashSet<>();
+        double totalOrderPrice = 0.0;
+
         for (Integer itemId : itemIds) {
             try {
                 OrderItem orderItem = new OrderItem();
@@ -69,6 +73,7 @@ public class OrderController {
                     orderItem.setOrder(order);
                     orderItem.setBook(cartItem.get().getBook());
                     orderItem.setQuantity(cartItem.get().getQuantity());
+                    totalOrderPrice += cartItem.get().getQuantity() * cartItem.get().getBook().getPrice();
                     orderItems.add(orderItem);
                 } else {
                     System.out.println("Cart item not found for id: " + itemId);
@@ -81,7 +86,13 @@ public class OrderController {
             }
         }
 
+        // Check if user has enough balance
+        if (user.getBalance() < totalOrderPrice) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Insufficient balance", false, null));
+        }
+
         order.setOrderItems(orderItems);
+        order.setTotalPrice(totalOrderPrice);
 
         try {
             orderService.placeOrder(order);

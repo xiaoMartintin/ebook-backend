@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
-
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
@@ -48,4 +47,11 @@ public class UserServiceImpl implements UserService {
     public User findByUsername(String username) {
         return userDao.findByUsername(username);
     }
+
+    @Override
+    public User saveUser(User user) {
+        return userDao.saveUser(user);
+    }
+
+
 }

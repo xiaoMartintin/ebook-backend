@@ -19,18 +19,26 @@ public class SessionInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
+
+        String requestURI = request.getRequestURI();
+
+        // Allow requests to /register and /login without session validation
+        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login")) {
+            return true;
+        }
+
         HttpSession session = request.getSession(false);
         if (session != null) {
             logger.debug("Session ID: {}", session.getId());
             logger.debug("User ID in session: {}", session.getAttribute("userId"));
             if (session.getAttribute("userId") != null) {
-                logger.debug("Authorized request to: {}", request.getRequestURI());
+                logger.debug("Authorized request to: {}", requestURI);
                 return true;
             } else {
-                logger.warn("No user ID in session for request to: {}", request.getRequestURI());
+                logger.warn("No user ID in session for request to: {}", requestURI);
             }
         } else {
-            logger.warn("No session found for request to: {}", request.getRequestURI());
+            logger.warn("No session found for request to: {}", requestURI);
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         return false;

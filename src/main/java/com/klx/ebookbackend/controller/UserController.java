@@ -25,6 +25,42 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PostMapping("/user/register")
+    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> request) {
+        System.out.println(request);
+        String username = request.get("username");
+        String nickname = request.getOrDefault("nickname", username);//昵称默认为用户名
+        String password = request.get("password");
+        String email = request.get("email");
+        System.out.println(username);
+        System.out.println(password);
+        System.out.println(email);
+        Map<String, Object> response = new HashMap<>();
+
+        //检查有没有重名
+        if (userService.findByUsername(username) != null) {
+            response.put("ok", false);
+            response.put("message", "Username already exists.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+
+        User newUser = new User();
+        newUser.setUsername(username);
+        newUser.setEmail(email);
+        newUser.setNickname(nickname); // 设置昵称
+        newUser.setBalance(1000.0); // Assuming default balance
+        newUser.setIs_admin(0); // Assuming default is non-admin
+        newUser.setIs_enabled(1); // Assuming default is enabled
+        userService.saveUser(newUser);
+
+        // 调用存储过程来设置密码
+        userService.changePassword(newUser.getId(), password);
+
+        response.put("ok", true);
+        response.put("message", "Registration successful!");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request, HttpSession session) {
         String username = request.get("username");

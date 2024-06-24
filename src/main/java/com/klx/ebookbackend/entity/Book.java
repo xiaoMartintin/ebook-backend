@@ -68,7 +68,6 @@ public class Book {
     }
 }
 
-
 //在这个实现中，我们使用了@PrePersist和@PreUpdate注解，确保在保存和更新实体时调用formatPrice()方法。formatPrice()方法会将价格四舍五入保留两位小数
     //这样做可以确保在数据库中存储的价格始终是两位小数的格式，避免了在前端或其他层次进行格式化处理。
 

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,7 +29,7 @@ public class User {
     private String nickname;
 
     @Column(name = "balance", nullable = false)
-    private Integer balance;
+    private Double balance;
 
     @Column(name = "email", nullable = false)
     private String email;
@@ -49,4 +51,14 @@ public class User {
     @JsonManagedReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Comment> comments = new LinkedHashSet<>();
+
+
+    @PrePersist
+    @PreUpdate
+    public void formatBalance() {
+        if (this.balance != null) {
+            BigDecimal bd = BigDecimal.valueOf(this.balance).setScale(2, RoundingMode.HALF_UP);
+            this.balance = bd.doubleValue();
+        }
+    }
 }
