@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     public List<Order> getOrders(Integer userId, String keyword, LocalDate startDate, LocalDate endDate) {
         List<Order> orders = new ArrayList<>();
         try {
+            //虽然前端和controller里面是LocalDate但是必须要换成Instant，精确的时间戳！然后
             Instant startInstant = startDate != null ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
             Instant endInstant = endDate != null ? endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
             List<Order> fetchedOrders = orderDao.findOrders(userId, keyword, startInstant, endInstant);

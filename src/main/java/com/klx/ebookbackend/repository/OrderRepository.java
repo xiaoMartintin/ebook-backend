@@ -21,7 +21,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "AND (:startDate IS NULL OR o.time >= :startDate) "
             + "AND (:endDate IS NULL OR o.time <= :endDate)")
     List<Order> findOrders(@Param("userId") Integer userId, @Param("keyword") String keyword,
-                           @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+                           @Param("startDate") Instant startDate, @Param("endDate") Instant endDate);//给order用的
+
+    List<Order> findByUserIdAndTimeBetween(Integer userId, Instant startDate, Instant endDate);//给statistics用的
 
     @Override
     void deleteById(Integer integer);

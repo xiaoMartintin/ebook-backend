@@ -13,4 +13,5 @@ public interface OrderDao {
     Optional<Order> getOrderById(int id);
     List<Order> getOrdersByUserId(int userId);
     List<Order> findOrders(Integer userId, String keyword, Instant startDate, Instant endDate);
+    List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startDate, Instant endDate);
 }

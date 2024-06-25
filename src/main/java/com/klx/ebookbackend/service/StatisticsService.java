@@ -1,8 +1,8 @@
 package com.klx.ebookbackend.service;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Map;
 
 public interface StatisticsService {
-    Map<String, Object> getUserStatistics(Integer userId, Instant startDate, Instant endDate);
+    Map<String, Object> getPurchaseStatistics(Integer userId, LocalDate startDate, LocalDate endDate);
 }

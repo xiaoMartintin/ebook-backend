@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -122,6 +123,18 @@ public class UserController {
         }
     }
 
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers(@RequestParam(value = "search", required = false) String search) {
+        List<User> users;
+        if (search != null && !search.isEmpty()) {
+            users = userService.searchUsers(search);
+        } else {
+            users = userService.getAllUsers();
+        }
+        System.out.println("All users: " + users);
+        return ResponseEntity.ok(users);
+    }
+
 
     @PutMapping("/user/me/password")
     public ResponseEntity<?> changeMyPassword(@RequestBody Map<String, String> request, HttpSession session) {
@@ -138,6 +151,24 @@ public class UserController {
         return ResponseEntity.ok(createResponse("Password changed successfully", true, null));
     }
 
+    @PutMapping("/users/{userId}/status")
+    public ResponseEntity<?> updateUserStatus(@PathVariable Integer userId, @RequestBody Map<String, Boolean> request) {
+        Boolean isEnabled = request.get("is_enabled");
+        Optional<User> userOptional = userService.getUserById(userId);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (user.getIs_enabled() != (isEnabled ? 1 : 0)) {
+                user.setIs_enabled(isEnabled ? 1 : 0);
+                userService.saveUser(user);
+                return ResponseEntity.ok().body(createResponse("User status updated successfully", true, null));
+            } else {
+                return ResponseEntity.ok().body(createResponse("User status is the same, no update needed", true, null));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createResponse("User not found", false, null));
+        }
+    }
 
     private Map<String, Object> createResponse(String message, boolean ok, Object data) {
         Map<String, Object> response = new HashMap<>();

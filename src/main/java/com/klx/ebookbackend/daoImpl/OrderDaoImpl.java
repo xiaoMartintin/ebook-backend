@@ -39,4 +39,10 @@ public class OrderDaoImpl implements OrderDao {
     public List<Order> findOrders(Integer userId, String keyword, Instant startDate, Instant endDate) {
         return orderRepository.findOrders(userId, keyword, startDate, endDate);
     }
+
+    @Override
+    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startDate, Instant endDate) {
+        return orderRepository.findByUserIdAndTimeBetween(userId, startDate, endDate);
+    }
+
 }
