@@ -2,7 +2,7 @@ package com.klx.ebookbackend.service;
 
 import com.klx.ebookbackend.entity.User;
 
-import java.util.Optional;
+import java.util.*;
 
 public interface UserService {
     Optional<User> getMe(Integer userId);
@@ -13,4 +13,6 @@ public interface UserService {
     Optional<User> getUserById(Integer userId);
     User findByUsername(String username);
     User saveUser(User user);
+    List<User> getAllUsers();
+    List<User> searchUsers(String search);
 }

@@ -15,4 +15,5 @@ public interface UserDao {
     void changePassword(int userId, String newPassword);
     User findUserById(int id);
     User findByUsername(String username);
+    List<User> searchUsers(String search);
 }
