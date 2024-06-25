@@ -123,18 +123,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers(@RequestParam(value = "search", required = false) String search) {
-        List<User> users;
-        if (search != null && !search.isEmpty()) {
-            users = userService.searchUsers(search);
-        } else {
-            users = userService.getAllUsers();
-        }
-        System.out.println("All users: " + users);
-        return ResponseEntity.ok(users);
-    }
-
 
     @PutMapping("/user/me/password")
     public ResponseEntity<?> changeMyPassword(@RequestBody Map<String, String> request, HttpSession session) {
@@ -151,8 +139,32 @@ public class UserController {
         return ResponseEntity.ok(createResponse("Password changed successfully", true, null));
     }
 
+
+    @GetMapping("/admin/users")
+    public ResponseEntity<List<User>> getAllUsers(@RequestParam(value = "search", required = false) String search, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null || !userService.isUserAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        List<User> users;
+        if (search != null && !search.isEmpty()) {
+            users = userService.searchUsers(search);
+        } else {
+            users = userService.getAllUsers();
+        }
+        System.out.println("All users: " + users);
+        return ResponseEntity.ok(users);
+    }
+
+
     @PutMapping("/users/{userId}/status")
-    public ResponseEntity<?> updateUserStatus(@PathVariable Integer userId, @RequestBody Map<String, Boolean> request) {
+    public ResponseEntity<?> updateUserStatus(@PathVariable Integer userId, @RequestBody Map<String, Boolean> request, HttpSession session) {
+        Integer adminId = (Integer) session.getAttribute("userId");
+        if (adminId == null || !userService.isUserAdmin(adminId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createResponse("Access denied", false, null));
+        }
+
         Boolean isEnabled = request.get("is_enabled");
         Optional<User> userOptional = userService.getUserById(userId);
 
@@ -169,6 +181,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createResponse("User not found", false, null));
         }
     }
+
 
     private Map<String, Object> createResponse(String message, boolean ok, Object data) {
         Map<String, Object> response = new HashMap<>();

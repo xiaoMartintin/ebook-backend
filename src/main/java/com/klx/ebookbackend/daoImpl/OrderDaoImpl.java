@@ -36,13 +36,19 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> findOrders(Integer userId, String keyword, Instant startDate, Instant endDate) {
-        return orderRepository.findOrders(userId, keyword, startDate, endDate);
+    public List<Order> findOrders(Integer userId, String keyword, Instant startInstant, Instant endInstant) {
+        return orderRepository.findOrders(userId, keyword, startInstant, endInstant);
     }
 
     @Override
-    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startDate, Instant endDate) {
-        return orderRepository.findByUserIdAndTimeBetween(userId, startDate, endDate);
+    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant) {
+        return orderRepository.findByUserIdAndTimeBetween(userId, startInstant, endInstant);
     }
+
+    public List<Order> findAllOrders(String keyword, Instant startInstant, Instant endInstant) {
+        return orderRepository.findAllOrders(keyword, startInstant, endInstant);
+    }
+
+
 
 }

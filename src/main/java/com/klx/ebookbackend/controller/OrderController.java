@@ -20,7 +20,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/order")
+@RequestMapping("/api")
 public class OrderController {
 
     @Autowired
@@ -35,7 +35,7 @@ public class OrderController {
     @Autowired
     private CartService cartService;
 
-    @PostMapping
+    @PostMapping("/order")
     public ResponseEntity<?> placeOrder(@RequestBody OrderInfo orderInfo, HttpSession session) {
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
@@ -108,7 +108,7 @@ public class OrderController {
     }
 
 
-    @GetMapping
+    @GetMapping("/order")
     public ResponseEntity<?> getOrders(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -125,7 +125,7 @@ public class OrderController {
         }
 
         List<Order> orders = orderService.getOrders(userId, keyword, startDate, endDate);
-        System.out.println("dead");
+//        System.out.println("dead");
         System.out.println(orders);
 
         for (Order order : orders) {
@@ -141,6 +141,34 @@ public class OrderController {
 
         return ResponseEntity.ok(createResponse("Orders retrieved", true, orders));
     }
+
+    @GetMapping("/admin/orders")
+    public ResponseEntity<?> getAllOrders(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            HttpSession session) {
+
+        System.out.println("Keyword: " + keyword);
+        System.out.println("Start Date: " + startDate);
+        System.out.println("End Date: " + endDate);
+
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null || !userService.isUserAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createResponse("Access denied", false, null));
+        }
+
+        List<Order> orders = orderService.getAllOrders(keyword, startDate, endDate);
+        System.out.println("Orders: " + orders);
+
+        if (orders.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(createResponse("No orders found", true, orders));
+        }
+
+        return ResponseEntity.ok(createResponse("Orders retrieved", true, orders));
+    }
+
+
 
 
     private Map<String, Object> createResponse(String message, boolean ok, Object data) {

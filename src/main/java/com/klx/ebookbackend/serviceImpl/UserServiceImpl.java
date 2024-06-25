@@ -69,4 +69,10 @@ public class UserServiceImpl implements UserService {
         return userDao.searchUsers(search);
     }
 
+    @Override
+    public boolean isUserAdmin(Integer userId){
+        Optional<User> userOptional = userDao.getUserById(userId);
+        return userOptional.map(user -> user.getIs_admin() == 1).orElse(false);
+    }
+
 }

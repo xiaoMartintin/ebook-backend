@@ -15,4 +15,5 @@ public interface UserService {
     User saveUser(User user);
     List<User> getAllUsers();
     List<User> searchUsers(String search);
+    boolean isUserAdmin(Integer userId);
 }

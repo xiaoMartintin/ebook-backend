@@ -9,4 +9,5 @@ import java.util.*;
 public interface OrderService {
     Order placeOrder(Order order);
     List<Order> getOrders(Integer userId, String keyword, LocalDate startDate, LocalDate endDate);
+    List<Order> getAllOrders(String keyword, LocalDate startDate, LocalDate endDate);
 }
