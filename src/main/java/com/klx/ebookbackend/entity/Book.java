@@ -9,7 +9,8 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -32,10 +33,10 @@ public class Book {
     private String author;
 
     @Column(name = "price")
-    private Double price;
+    private Double price = 0.00;
 
     @Column(name = "description", length = 2000)
-    private String description;
+    private String description = "暂无描述";
 
     @Column(name = "inventory", nullable = false)
     private Integer inventory;
@@ -43,8 +44,8 @@ public class Book {
     @Column(name = "image", nullable = false)
     private String cover;
 
-    @Column(name = "sales", nullable = false)
-    private Integer sales;
+    @Column(name = "sales", nullable = false, columnDefinition = "int default 0")
+    private Integer sales = 0;
 
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)

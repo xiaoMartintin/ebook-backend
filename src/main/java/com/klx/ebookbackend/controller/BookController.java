@@ -1,7 +1,9 @@
 package com.klx.ebookbackend.controller;
 
 import com.klx.ebookbackend.entity.Book;
+import com.klx.ebookbackend.dto.PagedBooks;
 import com.klx.ebookbackend.service.BookService;
+import com.klx.ebookbackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +17,12 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final UserService userService;
 
     @Autowired
-    public BookController(BookService bookService) {
+    public BookController(BookService bookService, UserService userService) {
         this.bookService = bookService;
+        this.userService = userService;
     }
 
     @GetMapping("/books")
@@ -34,7 +38,6 @@ public class BookController {
         PagedBooks pagedBooks = new PagedBooks(books, total);
         return ResponseEntity.ok(pagedBooks);
     }
-
 
     @GetMapping("/book/{id}")
     public ResponseEntity<?> getBookById(@PathVariable int id, HttpSession session) {
@@ -64,29 +67,34 @@ public class BookController {
         return ResponseEntity.ok(books);
     }
 
-    public static class PagedBooks {
-        private List<Book> items;
-        private int total;
-
-        public PagedBooks(List<Book> items, int total) {
-            this.items = items;
-            this.total = total;
+    @PostMapping("/books")
+    public ResponseEntity<?> addBook(@RequestBody Book book, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null || !userService.isUserAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
+        Book savedBook = bookService.saveBook(book);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedBook);
+    }
 
-        public List<Book> getItems() {
-            return items;
+    @PutMapping("/books/{id}")
+    public ResponseEntity<?> updateBook(@PathVariable int id, @RequestBody Book book, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null || !userService.isUserAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
+        book.setId(id);
+        Book updatedBook = bookService.saveBook(book);
+        return ResponseEntity.ok(updatedBook);
+    }
 
-        public void setItems(List<Book> items) {
-            this.items = items;
+    @DeleteMapping("/books/{id}")
+    public ResponseEntity<?> deleteBook(@PathVariable int id, HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null || !userService.isUserAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
-
-        public int getTotal() {
-            return total;
-        }
-
-        public void setTotal(int total) {
-            this.total = total;
-        }
+        bookService.deleteBook(id);
+        return ResponseEntity.ok("Book deleted successfully");
     }
 }

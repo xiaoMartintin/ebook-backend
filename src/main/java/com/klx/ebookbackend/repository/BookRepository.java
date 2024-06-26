@@ -25,6 +25,9 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
 
     @Override
     <S extends Book> S save(S entity);
+   // 在 JPA 中，save 方法可以用于保存新实体或更新现有实体。//
+    // 如果传入的实体对象在数据库中已经存在（即其 id 字段对应于数据库中已有记录的主键），则 save 方法会更新该记录。
+    // 如果传入的实体对象在数据库中不存在（即其 id 字段为 null 或者对应的记录在数据库中不存在），则 save 方法会插入一条新记录。
 
     @Override
     void deleteById(Integer integer);

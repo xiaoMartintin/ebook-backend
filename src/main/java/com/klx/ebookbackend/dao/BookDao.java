@@ -10,6 +10,6 @@ public interface BookDao {
     Book saveBook(Book book);
     void deleteBook(int id);
     List<Book> searchBooks(String keyword, int pageIndex, int pageSize);
-    int getTotalBooksCount(String keyword); // 新增方法
+    int getTotalBooksCount(String keyword);
     List<Book> getTopSellingBooks();
 }

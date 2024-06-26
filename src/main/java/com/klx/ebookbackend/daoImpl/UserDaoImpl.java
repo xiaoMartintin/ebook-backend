@@ -4,9 +4,10 @@ import com.klx.ebookbackend.dao.UserDao;
 import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,8 +17,8 @@ public class UserDaoImpl implements UserDao {
     private UserRepository userRepository;
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     @Override
@@ -63,7 +64,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<User> searchUsers(String search) {
-        return userRepository.findByUsernameContainingOrEmailContainingOrNicknameContaining(search, search, search);
+    public Page<User> searchUsers(String keyword, Pageable pageable) {
+        return userRepository.findByUsernameContainingOrEmailContainingOrNicknameContaining(keyword, keyword, keyword, pageable);
     }
 }

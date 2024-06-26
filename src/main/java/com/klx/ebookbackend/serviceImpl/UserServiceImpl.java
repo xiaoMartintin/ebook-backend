@@ -5,10 +5,11 @@ import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.service.UserService;
 import com.klx.ebookbackend.utils.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -59,20 +60,19 @@ public class UserServiceImpl implements UserService {
         return userDao.saveUser(user);
     }
 
-
-    public List<User> getAllUsers(){
-        return userDao.getAllUsers();
+    @Override
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userDao.getAllUsers(pageable);
     }
 
     @Override
-    public List<User> searchUsers(String search) {
-        return userDao.searchUsers(search);
+    public Page<User> searchUsers(String keyword, Pageable pageable) {
+        return userDao.searchUsers(keyword, pageable);
     }
 
     @Override
-    public boolean isUserAdmin(Integer userId){
+    public boolean isUserAdmin(Integer userId) {
         Optional<User> userOptional = userDao.getUserById(userId);
         return userOptional.map(user -> user.getIs_admin() == 1).orElse(false);
     }
-
 }

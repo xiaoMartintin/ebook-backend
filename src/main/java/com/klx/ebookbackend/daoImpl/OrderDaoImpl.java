@@ -5,6 +5,7 @@ import com.klx.ebookbackend.entity.Order;
 import com.klx.ebookbackend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.*;
@@ -14,7 +15,6 @@ public class OrderDaoImpl implements OrderDao {
 
     @Autowired
     private OrderRepository orderRepository;
-
 
     @Override
     public Order saveOrder(Order order){
@@ -30,6 +30,7 @@ public class OrderDaoImpl implements OrderDao {
     public Optional<Order> getOrderById(int id){
         return orderRepository.findById(id);
     }
+
     @Override
     public List<Order> getOrdersByUserId(int userId) {
         return orderRepository.findByUserId(userId);
@@ -41,14 +42,19 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant) {
-        return orderRepository.findByUserIdAndTimeBetween(userId, startInstant, endInstant);
+    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant, Pageable pageable) {
+//        System.out.println("getOrderByUserIdAndTimeBetween");
+        return orderRepository.findByUserIdAndTimeBetween(userId, startInstant, endInstant, pageable);
     }
 
+    @Override
+    public List<Order> getOrdersByTimeBetween(Instant startInstant, Instant endInstant, Pageable pageable) {
+//        System.out.println("getOrdersByTimeBetween");
+        return orderRepository.findByTimeBetween(startInstant, endInstant, pageable);
+    }
+
+    @Override
     public List<Order> findAllOrders(String keyword, Instant startInstant, Instant endInstant) {
         return orderRepository.findAllOrders(keyword, startInstant, endInstant);
     }
-
-
-
 }

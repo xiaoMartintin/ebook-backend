@@ -1,8 +1,10 @@
 package com.klx.ebookbackend.service;
 
 import com.klx.ebookbackend.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.*;
+import java.util.Optional;
 
 public interface UserService {
     Optional<User> getMe(Integer userId);
@@ -13,7 +15,7 @@ public interface UserService {
     Optional<User> getUserById(Integer userId);
     User findByUsername(String username);
     User saveUser(User user);
-    List<User> getAllUsers();
-    List<User> searchUsers(String search);
     boolean isUserAdmin(Integer userId);
+    Page<User> searchUsers(String keyword, Pageable pageable);
+    Page<User> getAllUsers(Pageable pageable);
 }

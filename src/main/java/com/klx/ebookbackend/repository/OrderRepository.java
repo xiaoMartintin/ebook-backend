@@ -1,14 +1,13 @@
 package com.klx.ebookbackend.repository;
 
 import com.klx.ebookbackend.entity.Order;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 
 @Repository
@@ -21,10 +20,14 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "AND (:startInstant IS NULL OR o.time >= :startInstant) "
             + "AND (:endInstant IS NULL OR o.time <= :endInstant)")
     List<Order> findOrders(@Param("userId") Integer userId, @Param("keyword") String keyword,
-                           @Param("startInstant") Instant startInstant, @Param("endInstant") Instant endInstant);//给order用的
+                           @Param("startInstant") Instant startInstant, @Param("endInstant") Instant endInstant);
+
+    List<Order> findByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant, Pageable pageable);
+
+    List<Order> findByTimeBetween(Instant startInstant, Instant endInstant, Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE "
-            + "((:keyword IS NULL OR :keyword = '') AND (:startInstant IS NULL) AND (:endInstant IS NULL)) "  // 当所有参数为空时，确保返回true
+            + "((:keyword IS NULL OR :keyword = '') AND (:startInstant IS NULL) AND (:endInstant IS NULL)) "
             + "OR (:keyword IS NOT NULL AND (:keyword = '' OR LOWER(o.receiver) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(o.tel) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(o.address) LIKE LOWER(CONCAT('%', :keyword, '%')) "
@@ -33,26 +36,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "AND (:endInstant IS NULL OR o.time <= :endInstant)")
     List<Order> findAllOrders(@Param("keyword") String keyword,
                               @Param("startInstant") Instant startInstant,
-                              @Param("endInstant") Instant endInstant);//给admin order用的，确保在所有参数都为空时，能够返回所有订单。
-
-//    @Query("SELECT o FROM Order o WHERE "
-//            + "(:keyword IS NULL OR LOWER(o.receiver) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-//            + "OR LOWER(o.tel) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-//            + "OR LOWER(o.address) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-//            + "OR EXISTS (SELECT 1 FROM o.orderItems oi WHERE LOWER(oi.book.title) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
-//            + "AND (:startInstant IS NULL OR o.time >= :startInstant) "
-//            + "AND (:endInstant IS NULL OR o.time <= :endInstant)")
-//    List<Order> findAllOrders(@Param("keyword") String keyword,
-//                              @Param("startInstant") Instant startInstant,
-//                              @Param("endInstant") Instant endInstant);
-//    ;
+                              @Param("endInstant") Instant endInstant);
 
 
-    List<Order> findByUserIdAndTimeBetween(Integer userId, Instant startInstant, Instant endInstant);//给statistics用的
 
-    @Override
-    void deleteById(Integer integer);
 
-    @Override
-    <S extends Order> S save(S entity);
+
 }

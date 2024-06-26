@@ -8,5 +8,7 @@ public interface BookService {
     List<Book> searchBooks(String keyword, int pageIndex, int pageSize);
     Book getBookById(int id);
     List<Book> getTop10BestSellingBooks();
-    int getTotalBooksCount(String keyword); // 新增方法
+    int getTotalBooksCount(String keyword);
+    Book saveBook(Book book);
+    void deleteBook(int id);
 }

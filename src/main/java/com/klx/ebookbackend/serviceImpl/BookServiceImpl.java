@@ -38,4 +38,14 @@ public class BookServiceImpl implements BookService {
     public int getTotalBooksCount(String keyword) {
         return bookDao.getTotalBooksCount(keyword);
     }
+
+    @Override
+    public Book saveBook(Book book) {
+        return bookDao.saveBook(book);
+    }
+
+    @Override
+    public void deleteBook(int id) {
+        bookDao.deleteBook(id);
+    }
 }

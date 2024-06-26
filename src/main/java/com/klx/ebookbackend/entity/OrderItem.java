@@ -57,20 +57,22 @@ public class OrderItem {
         }
     }
 
-    @PreRemove
-    private void revertBookInventoryAndSales() {
-        if (this.book != null && this.quantity != null) {
-            // 恢复库存和销售数量
-            book.setInventory(book.getInventory() + this.quantity);
-            book.setSales(book.getSales() - this.quantity);
+//    贴合实际的话，是不能恢复的，因为不管你后来书怎么变，订单只要完成了，订单里的书的价格等信息就是买下时的状态
 
-            // 恢复用户余额
-            User user = this.order.getUser();
-            double orderItemTotalPrice = this.quantity * this.book.getPrice();
-            user.setBalance(user.getBalance() + orderItemTotalPrice);
-
-            // 更新订单总价
-            this.order.updateTotalPrice();
-        }
-    }
+//    @PreRemove
+//    private void revertBookInventoryAndSales() {
+//        if (this.book != null && this.quantity != null) {
+//            // 恢复库存和销售数量
+//            book.setInventory(book.getInventory() + this.quantity);
+//            book.setSales(book.getSales() - this.quantity);
+//
+//            // 恢复用户余额
+//            User user = this.order.getUser();
+//            double orderItemTotalPrice = this.quantity * this.book.getPrice();
+//            user.setBalance(user.getBalance() + orderItemTotalPrice);
+//
+//            // 更新订单总价
+//            this.order.updateTotalPrice();
+//        }
+//    }
 }

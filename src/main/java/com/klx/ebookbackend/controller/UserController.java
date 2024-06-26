@@ -3,6 +3,9 @@ package com.klx.ebookbackend.controller;
 import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -97,7 +100,6 @@ public class UserController {
         }
     }
 
-
     @PutMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
         session.invalidate();
@@ -107,7 +109,6 @@ public class UserController {
         response.put("data", null);
         return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/user/me")
     public ResponseEntity<?> getMe(HttpSession session) {
@@ -122,7 +123,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
-
 
     @PutMapping("/user/me/password")
     public ResponseEntity<?> changeMyPassword(@RequestBody Map<String, String> request, HttpSession session) {
@@ -139,24 +139,29 @@ public class UserController {
         return ResponseEntity.ok(createResponse("Password changed successfully", true, null));
     }
 
-
     @GetMapping("/admin/users")
-    public ResponseEntity<List<User>> getAllUsers(@RequestParam(value = "search", required = false) String search, HttpSession session) {
+    public ResponseEntity<Page<User>> getAllUsers(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize,
+            HttpSession session) {
+
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null || !userService.isUserAdmin(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
 
-        List<User> users;
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        Page<User> users;
+
         if (search != null && !search.isEmpty()) {
-            users = userService.searchUsers(search);
+            users = userService.searchUsers(search, pageable);
         } else {
-            users = userService.getAllUsers();
+            users = userService.getAllUsers(pageable);
         }
-        System.out.println("All users: " + users);
+
         return ResponseEntity.ok(users);
     }
-
 
     @PutMapping("/users/{userId}/status")
     public ResponseEntity<?> updateUserStatus(@PathVariable Integer userId, @RequestBody Map<String, Boolean> request, HttpSession session) {
@@ -182,7 +187,6 @@ public class UserController {
         }
     }
 
-
     private Map<String, Object> createResponse(String message, boolean ok, Object data) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", message);
@@ -190,5 +194,4 @@ public class UserController {
         response.put("data", data);
         return response;
     }
-
 }
