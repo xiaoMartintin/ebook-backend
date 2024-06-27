@@ -10,6 +10,12 @@ import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.*;
 
+import org.springframework.stereotype.Repository;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public class OrderDaoImpl implements OrderDao {
 
@@ -42,15 +48,13 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant, Pageable pageable) {
-//        System.out.println("getOrderByUserIdAndTimeBetween");
-        return orderRepository.findByUserIdAndTimeBetween(userId, startInstant, endInstant, pageable);
+    public List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant) {
+        return orderRepository.findByUserIdAndTimeBetween(userId, startInstant, endInstant);
     }
 
     @Override
-    public List<Order> getOrdersByTimeBetween(Instant startInstant, Instant endInstant, Pageable pageable) {
-//        System.out.println("getOrdersByTimeBetween");
-        return orderRepository.findByTimeBetween(startInstant, endInstant, pageable);
+    public List<Order> getOrdersByTimeBetween(Instant startInstant, Instant endInstant) {
+        return orderRepository.findByTimeBetween(startInstant, endInstant);
     }
 
     @Override

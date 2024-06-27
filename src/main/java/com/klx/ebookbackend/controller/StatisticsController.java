@@ -26,8 +26,6 @@ public class StatisticsController {
     public ResponseEntity<?> getPurchaseStatistics(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(value = "pageIndex", defaultValue = "0") int pageIndex,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             HttpSession session) {
 
         Integer userId = (Integer) session.getAttribute("userId");
@@ -35,7 +33,7 @@ public class StatisticsController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
 
-        Map<String, Object> statistics = statisticsService.getPurchaseStatistics(userId, startDate, endDate, pageIndex, pageSize);
+        Map<String, Object> statistics = statisticsService.getPurchaseStatistics(userId, startDate, endDate);
         return ResponseEntity.ok(statistics);
     }
 
@@ -43,8 +41,6 @@ public class StatisticsController {
     public ResponseEntity<?> getSalesStatistics(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(value = "pageIndex", defaultValue = "0") int pageIndex,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             HttpSession session) {
 
         Integer adminId = (Integer) session.getAttribute("userId");
@@ -52,8 +48,7 @@ public class StatisticsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
 
-        Map<String, Object> salesStats = statisticsService.getSalesStatistics(startDate, endDate, pageIndex, pageSize);
-        System.out.println("salesStats: "+salesStats);
+        Map<String, Object> salesStats = statisticsService.getSalesStatistics(startDate, endDate);
         return ResponseEntity.ok(salesStats);
     }
 
@@ -61,8 +56,6 @@ public class StatisticsController {
     public ResponseEntity<?> getUserPurchaseStatistics(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(value = "pageIndex", defaultValue = "0") int pageIndex,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             HttpSession session) {
 
         Integer adminId = (Integer) session.getAttribute("userId");
@@ -70,8 +63,7 @@ public class StatisticsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
 
-        Map<String, Object> userStats = statisticsService.getUserPurchaseStatistics(startDate, endDate, pageIndex, pageSize);
-        System.out.println("userStats: "+userStats);
+        Map<String, Object> userStats = statisticsService.getUserPurchaseStatistics(startDate, endDate);
         return ResponseEntity.ok(userStats);
     }
 }

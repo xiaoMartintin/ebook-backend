@@ -7,8 +7,6 @@ import com.klx.ebookbackend.service.StatisticsService;
 import com.klx.ebookbackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -27,12 +25,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     private UserService userService;
 
     @Override
-    public Map<String, Object> getPurchaseStatistics(Integer userId, LocalDate startDate, LocalDate endDate, int pageIndex, int pageSize) {
+    public Map<String, Object> getPurchaseStatistics(Integer userId, LocalDate startDate, LocalDate endDate) {
         Instant startInstant = startDate != null ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : Instant.EPOCH;
         Instant endInstant = endDate != null ? endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : Instant.now();
-        Pageable pageable = PageRequest.of(pageIndex, pageSize);
 
-        List<Order> orders = orderDao.getOrdersByUserIdAndTimeBetween(userId, startInstant, endInstant, pageable);
+        List<Order> orders = orderDao.getOrdersByUserIdAndTimeBetween(userId, startInstant, endInstant);
         if (orders.isEmpty()) {
             return new HashMap<>(); // 返回空结果避免空指针异常
         }
@@ -67,12 +64,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Map<String, Object> getSalesStatistics(LocalDate startDate, LocalDate endDate, int pageIndex, int pageSize) {
+    public Map<String, Object> getSalesStatistics(LocalDate startDate, LocalDate endDate) {
         Instant startInstant = startDate != null ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : Instant.EPOCH;
         Instant endInstant = endDate != null ? endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : Instant.now();
-        Pageable pageable = PageRequest.of(pageIndex, pageSize);
 
-        List<Order> orders = orderDao.getOrdersByTimeBetween(startInstant, endInstant, pageable);
+        List<Order> orders = orderDao.getOrdersByTimeBetween(startInstant, endInstant);
         if (orders.isEmpty()) {
             return new HashMap<>(); // 返回空结果避免空指针异常
         }
@@ -94,23 +90,22 @@ public class StatisticsServiceImpl implements StatisticsService {
                     return map;
                 })
                 .sorted((a, b) -> (int) b.get("quantity") - (int) a.get("quantity"))
+//                .limit(10)
                 .collect(Collectors.toList());
 
         Map<String, Object> result = new HashMap<>();
         result.put("sales", sortedBookQuantities);
         result.put("total", sortedBookQuantities.size());
 
-//        System.out.println(result+ "<- result: " + sortedBookQuantities);
         return result;
     }
 
     @Override
-    public Map<String, Object> getUserPurchaseStatistics(LocalDate startDate, LocalDate endDate, int pageIndex, int pageSize) {
+    public Map<String, Object> getUserPurchaseStatistics(LocalDate startDate, LocalDate endDate) {
         Instant startInstant = startDate != null ? startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : Instant.EPOCH;
         Instant endInstant = endDate != null ? endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : Instant.now();
-        Pageable pageable = PageRequest.of(pageIndex, pageSize);
 
-        List<Order> orders = orderDao.getOrdersByTimeBetween(startInstant, endInstant, pageable);
+        List<Order> orders = orderDao.getOrdersByTimeBetween(startInstant, endInstant);
         if (orders.isEmpty()) {
             return new HashMap<>(); // 返回空结果避免空指针异常
         }
@@ -131,13 +126,12 @@ public class StatisticsServiceImpl implements StatisticsService {
                     return map;
                 })
                 .sorted((a, b) -> Double.compare((double) b.get("totalPurchases"), (double) a.get("totalPurchases")))
+//                .limit(10)
                 .collect(Collectors.toList());
 
         Map<String, Object> result = new HashMap<>();
         result.put("users", sortedUserPurchases);
         result.put("total", sortedUserPurchases.size());
-
-//        System.out.println(result+ "<- result: " + sortedUserPurchases);
 
         return result;
     }
