@@ -39,7 +39,7 @@ public class Book {
     private String description = "暂无描述";
 
     @Column(name = "inventory", nullable = false)
-    private Integer inventory;
+    private Integer inventory = 0;
 
     @Column(name = "image", nullable = false)
     private String cover;

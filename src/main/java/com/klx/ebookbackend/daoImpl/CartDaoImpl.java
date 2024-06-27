@@ -7,6 +7,9 @@ import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.repository.CartRepository;
 import com.klx.ebookbackend.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -43,8 +46,8 @@ public class CartDaoImpl implements CartDao {
     }
 
     @Override
-    public List<Cart> getCartItems(Integer userId) {
-        List<Cart> cartItems = cartRepository.findByUserId(userId);
+    public Page<Cart> getCartItems(Integer userId, Pageable pageable) {
+        Page<Cart> cartItems = cartRepository.findByUserId(userId, pageable);
         // 确保每个Cart对象都有一个非空的Book对象
         for (Cart cart : cartItems) {
             cart.setBook(bookRepository.findById(cart.getBook().getId()).orElse(null));
@@ -52,25 +55,27 @@ public class CartDaoImpl implements CartDao {
                 throw new IllegalStateException("Cart item is missing book information");
             }
         }
-        return cartItems != null ? cartItems : Collections.emptyList();
+        return cartItems;
     }
+
 
 
 
     @Override
     public void addCartItem(User user, Book book, int quantity) {
-        List<Cart> cartItems = cartRepository.findByUserId(user.getId());
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE); // 使用一个足够大的页码来确保获取所有项目
+        Page<Cart> cartItemsPage = cartRepository.findByUserId(user.getId(), pageable);
+        List<Cart> cartItems = cartItemsPage.getContent();
+
         Optional<Cart> existingCartItem = cartItems.stream()
                 .filter(cart -> cart.getBook().getId() == book.getId())
                 .findFirst();
 
-        //有的话就加上去
         if (existingCartItem.isPresent()) {
             Cart cart = existingCartItem.get();
             cart.setQuantity(cart.getQuantity() + quantity);
             cartRepository.save(cart);
         } else {
-            //没有再新建
             Cart cart = new Cart();
             cart.setUser(user);
             cart.setBook(book);
@@ -78,6 +83,7 @@ public class CartDaoImpl implements CartDao {
             cartRepository.save(cart);
         }
     }
+
 
     @Override
     public void changeCartItemNumber(int id, int number) {

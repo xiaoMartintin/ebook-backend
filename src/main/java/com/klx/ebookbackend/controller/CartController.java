@@ -3,6 +3,9 @@ package com.klx.ebookbackend.controller;
 import com.klx.ebookbackend.entity.Cart;
 import com.klx.ebookbackend.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,14 +26,18 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @GetMapping
-    public ResponseEntity<?> getUserItems(HttpSession session) {
+    @GetMapping()
+    public ResponseEntity<?> getUserItemsPaged(
+            @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize,
+            HttpSession session) {
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
         }
-        List<Cart> cartItems = cartService.getCartItems(userId);
-        return ResponseEntity.ok(createResponse("Cart items retrieved", true, cartItems));
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        Page<Cart> cartItems = cartService.getCartItems(userId, pageable);
+        return ResponseEntity.ok(createResponse("Paged cart items retrieved", true, cartItems));
     }
 
     @PutMapping
@@ -60,6 +67,7 @@ public class CartController {
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("Unauthorized", false, null));
         }
+
         cartService.deleteCartItem(id);
         return ResponseEntity.ok(createResponse("Cart item deleted", true, null));
     }

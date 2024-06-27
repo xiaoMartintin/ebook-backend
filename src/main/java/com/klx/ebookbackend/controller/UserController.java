@@ -118,6 +118,7 @@ public class UserController {
         }
         Optional<User> userOptional = userService.getMe(userId);
         if (userOptional.isPresent()) {
+            System.out.println("user: "+userOptional.get().getUsername());
             return ResponseEntity.ok(userOptional.get());
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

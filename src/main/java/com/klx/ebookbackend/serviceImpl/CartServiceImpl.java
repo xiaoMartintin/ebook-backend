@@ -6,6 +6,8 @@ import com.klx.ebookbackend.entity.Cart;
 import com.klx.ebookbackend.entity.User;
 import com.klx.ebookbackend.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,8 +24,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<Cart> getCartItems(Integer userId) {
-        List<Cart> cartItems = cartDao.getCartItems(userId);
+    public Page<Cart> getCartItems(Integer userId, Pageable pageable) {
+        Page<Cart> cartItems = cartDao.getCartItems(userId,pageable);
         // 确保每个Cart对象都有一个非空的Book对象
         for (Cart cart : cartItems) {
             if (cart.getBook() == null) {
