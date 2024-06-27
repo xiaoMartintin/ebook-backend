@@ -4,17 +4,12 @@ import com.klx.ebookbackend.dao.OrderDao;
 import com.klx.ebookbackend.entity.Order;
 import com.klx.ebookbackend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.*;
-
-import org.springframework.stereotype.Repository;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class OrderDaoImpl implements OrderDao {
@@ -43,8 +38,8 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> findOrders(Integer userId, String keyword, Instant startInstant, Instant endInstant) {
-        return orderRepository.findOrders(userId, keyword, startInstant, endInstant);
+    public Page<Order> findOrders(Integer userId, String keyword, Instant startInstant, Instant endInstant, Pageable pageable) {
+        return orderRepository.findOrders(userId, keyword, startInstant, endInstant, pageable);
     }
 
     @Override
@@ -58,7 +53,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> findAllOrders(String keyword, Instant startInstant, Instant endInstant) {
-        return orderRepository.findAllOrders(keyword, startInstant, endInstant);
+    public Page<Order> findAllOrders(String keyword, Instant startInstant, Instant endInstant, Pageable pageable) {
+        return orderRepository.findAllOrders(keyword, startInstant, endInstant, pageable);
     }
 }

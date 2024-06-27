@@ -1,6 +1,7 @@
 package com.klx.ebookbackend.dao;
 
 import com.klx.ebookbackend.entity.Order;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 
@@ -14,8 +15,10 @@ public interface OrderDao {
     void deleteOrder(int id);
     Optional<Order> getOrderById(int id);
     List<Order> getOrdersByUserId(int userId);
-    List<Order> findOrders(Integer userId, String keyword, Instant startInstant, Instant endInstant);
+//    List<Order> findOrders(Integer userId, String keyword, Instant startInstant, Instant endInstant);
     List<Order> getOrdersByUserIdAndTimeBetween(int userId, Instant startInstant, Instant endInstant);
     List<Order> getOrdersByTimeBetween(Instant startInstant, Instant endInstant);
-    List<Order> findAllOrders(String keyword, Instant startInstant, Instant endInstant);
+//    List<Order> findAllOrders(String keyword, Instant startInstant, Instant endInstant);
+    Page<Order> findOrders(Integer userId, String keyword, Instant startDate, Instant endDate, Pageable pageable);
+    Page<Order> findAllOrders(String keyword, Instant startDate, Instant endDate, Pageable pageable);
 }

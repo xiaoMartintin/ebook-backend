@@ -4,11 +4,14 @@ import com.klx.ebookbackend.entity.Order;
 import com.klx.ebookbackend.entity.Cart;
 import com.klx.ebookbackend.entity.OrderItem;
 import com.klx.ebookbackend.entity.User;
+import com.klx.ebookbackend.dto.OrderInfo;
 import com.klx.ebookbackend.service.OrderService;
 import com.klx.ebookbackend.service.CartService;
 import com.klx.ebookbackend.service.UserService;
 import com.klx.ebookbackend.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -108,11 +111,14 @@ public class OrderController {
     }
 
 
+
     @GetMapping("/order")
     public ResponseEntity<?> getOrders(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize,
             HttpSession session) {
 
         System.out.println("keyword: " + keyword);
@@ -124,22 +130,14 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("User not logged in", false, null));
         }
 
-        List<Order> orders = orderService.getOrders(userId, keyword, startDate, endDate);
-//        System.out.println("dead");
-        System.out.println(orders);
+        Page<Order> orderPage = orderService.getOrders(userId, keyword, startDate, endDate, PageRequest.of(pageIndex, pageSize));
+        System.out.println(orderPage.getContent());
 
-        for (Order order : orders) {
-            System.out.println(order.getAddress());
-            System.out.println(order.getReceiver());
-            System.out.println(order.getTel());
-            System.out.println(order.getTime());
+        if (orderPage.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(createResponse("No orders found", true, orderPage.getContent()));
         }
 
-        if (orders.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(createResponse("No orders found", true, orders));
-        }
-
-        return ResponseEntity.ok(createResponse("Orders retrieved", true, orders));
+        return ResponseEntity.ok(createResponse("Orders retrieved", true, orderPage));
     }
 
     @GetMapping("/admin/orders")
@@ -147,6 +145,8 @@ public class OrderController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize,
             HttpSession session) {
 
         System.out.println("Keyword: " + keyword);
@@ -158,15 +158,18 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createResponse("Access denied", false, null));
         }
 
-        List<Order> orders = orderService.getAllOrders(keyword, startDate, endDate);
-        System.out.println("Orders: " + orders);
+        Page<Order> orderPage = orderService.getAllOrders(keyword, startDate, endDate, PageRequest.of(pageIndex, pageSize));
 
-        if (orders.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(createResponse("No orders found", true, orders));
+        System.out.println("Orders: " + orderPage.getContent());
+
+        if (orderPage.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(createResponse("No orders found", true, orderPage.getContent()));
         }
 
-        return ResponseEntity.ok(createResponse("Orders retrieved", true, orders));
+        return ResponseEntity.ok(createResponse("Orders retrieved", true, orderPage));
     }
+
+
 
 
 
@@ -179,44 +182,5 @@ public class OrderController {
         return response;
     }
 
-    public static class OrderInfo {
-        private String address;
-        private String receiver;
-        private String tel;
-        private List<Integer> itemIds;
 
-        // Getters and Setters
-
-        public String getAddress() {
-            return address;
-        }
-
-        public void setAddress(String address) {
-            this.address = address;
-        }
-
-        public String getReceiver() {
-            return receiver;
-        }
-
-        public void setReceiver(String receiver) {
-            this.receiver = receiver;
-        }
-
-        public String getTel() {
-            return tel;
-        }
-
-        public void setTel(String tel) {
-            this.tel = tel;
-        }
-
-        public List<Integer> getItemIds() {
-            return itemIds;
-        }
-
-        public void setItemIds(List<Integer> itemIds) {
-            this.itemIds = itemIds;
-        }
-    }
 }
