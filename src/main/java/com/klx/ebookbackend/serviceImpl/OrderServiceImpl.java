@@ -1,11 +1,9 @@
 package com.klx.ebookbackend.serviceImpl;
 
 import com.klx.ebookbackend.dao.OrderDao;
-import com.klx.ebookbackend.dao.OrderItemDao;
 import com.klx.ebookbackend.dao.BookDao;
 import com.klx.ebookbackend.entity.Book;
 import com.klx.ebookbackend.entity.Order;
-import com.klx.ebookbackend.entity.OrderItem;
 import com.klx.ebookbackend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -23,8 +20,6 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderDao orderDao;
-    @Autowired
-    private OrderItemDao orderItemDao;
     @Autowired
     private BookDao bookDao;
 
@@ -42,15 +37,13 @@ public class OrderServiceImpl implements OrderService {
         System.out.println("fetchedOrders: " + fetchedOrders);
 
         fetchedOrders.forEach(order -> {
-            List<OrderItem> orderItems = orderItemDao.getOrderItemsByOrder(order);
-            if (orderItems != null) {
-                orderItems.forEach(orderItem -> {
+            if (order.getOrderItems() != null) {
+                order.getOrderItems().forEach(orderItem -> {
                     if (orderItem.getBook() != null) {
                         Book book = bookDao.getBookById(orderItem.getBook().getId());
                         orderItem.setBook(book);
                     }
                 });
-                order.setOrderItems(new LinkedHashSet<>(orderItems));
             }
         });
         return fetchedOrders;
@@ -65,18 +58,15 @@ public class OrderServiceImpl implements OrderService {
 
         System.out.println("fetchedOrders: " + fetchedOrders);
         fetchedOrders.forEach(order -> {
-            List<OrderItem> orderItems = orderItemDao.getOrderItemsByOrder(order);
-            if (orderItems != null) {
-                orderItems.forEach(orderItem -> {
+            if (order.getOrderItems() != null) {
+                order.getOrderItems().forEach(orderItem -> {
                     if (orderItem.getBook() != null) {
                         Book book = bookDao.getBookById(orderItem.getBook().getId());
                         orderItem.setBook(book);
                     }
                 });
-                order.setOrderItems(new LinkedHashSet<>(orderItems));
             }
         });
         return fetchedOrders;
     }
-
 }
