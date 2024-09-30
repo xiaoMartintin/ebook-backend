@@ -4,6 +4,8 @@ import com.klx.ebookbackend.entity.Order;
 import com.klx.ebookbackend.entity.Cart;
 import com.klx.ebookbackend.entity.OrderItem;
 import com.klx.ebookbackend.entity.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 import com.klx.ebookbackend.dto.OrderInfo;
 import com.klx.ebookbackend.service.OrderService;
 import com.klx.ebookbackend.service.CartService;
@@ -16,6 +18,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import javax.servlet.http.HttpSession;
 import java.time.Instant;
@@ -38,79 +41,90 @@ public class OrderController {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+//    @PostMapping("/order")
+//    // 这是原来的同步下订单
+//    public ResponseEntity<?> placeOrderSync(@RequestBody OrderInfo orderInfo, HttpSession session) {
+//        Integer userId = (Integer) session.getAttribute("userId");
+//        if (userId == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("User not logged in", false, null));
+//        }
+//
+//        // Debugging output
+//        System.out.println("OrderInfo received: " + orderInfo);
+//
+//        String address = orderInfo.getAddress();
+//        String receiver = orderInfo.getReceiver();
+//        String tel = orderInfo.getTel();
+//        List<Integer> itemIds = orderInfo.getItemIds();
+//
+//        // 校验订单信息是否完整
+//        if (address == null || receiver == null || tel == null || itemIds == null || itemIds.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Invalid order info", false, null));
+//        }
+//
+//        try {
+//            // 调用 OrderService 处理订单
+//            Order order = orderService.processOrder(userId, address, receiver, tel, itemIds);
+//            return ResponseEntity.ok(createResponse("Order successfully placed", true, null));
+//        } catch (RuntimeException e) {
+//            // 捕获自定义的余额不足异常
+//            if (e.getMessage().contains("Insufficient balance")) {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Insufficient balance", false, null));
+//            }
+//            // 捕获其他运行时异常并返回 500 错误码
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createResponse("Error processing order: " + e.getMessage(), false, null));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createResponse("Error placing order", false, null));
+//        }
+//    }
+
     @PostMapping("/order")
-    public ResponseEntity<?> placeOrder(@RequestBody OrderInfo orderInfo, HttpSession session) {
+    public ResponseEntity<?> sendOrderToKafka(@RequestBody OrderInfo orderInfo, HttpSession session) {
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
+            System.out.println("User not logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createResponse("User not logged in", false, null));
         }
 
-        // Debugging output
-        System.out.println("OrderInfo received: " + orderInfo);
-
+        // 校验订单信息是否完整
         String address = orderInfo.getAddress();
         String receiver = orderInfo.getReceiver();
         String tel = orderInfo.getTel();
         List<Integer> itemIds = orderInfo.getItemIds();
-
         if (address == null || receiver == null || tel == null || itemIds == null || itemIds.isEmpty()) {
+            System.out.println("Invalid order info received: " + orderInfo);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Invalid order info", false, null));
         }
 
-        Order order = new Order();
-        order.setAddress(address);
-        order.setReceiver(receiver);
-        order.setTel(tel);
-        order.setTime(Instant.now());
-        User user = userService.getUserById(userId).orElse(null);
-        order.setUser(user);
-
-        Set<OrderItem> orderItems = new LinkedHashSet<>();
-        double totalOrderPrice = 0.0;
-
-        for (Integer itemId : itemIds) {
-            try {
-                OrderItem orderItem = new OrderItem();
-                Optional<Cart> cartItem = cartService.getCartById(itemId);
-
-                //orderInfo里面的itemId实际上是Cart的id所以必须从Cart里面拿数据，把一个cart映射到一个order_item
-                if (cartItem.isPresent()) {
-                    orderItem.setOrder(order);
-                    orderItem.setBook(cartItem.get().getBook());
-                    orderItem.setQuantity(cartItem.get().getQuantity());
-                    totalOrderPrice += cartItem.get().getQuantity() * cartItem.get().getBook().getPrice();
-                    orderItems.add(orderItem);
-                } else {
-                    System.out.println("Cart item not found for id: " + itemId);
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Invalid cart item ID: " + itemId, false, null));
-                }
-            } catch (Exception e) {
-                System.out.println("Error processing cart item with id: " + itemId);
-                e.printStackTrace();
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createResponse("Error processing cart item with id: " + itemId, false, null));
-            }
-        }
-
-        // Check if user has enough balance
-        if (user.getBalance() < totalOrderPrice) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("Insufficient balance", false, null));
-        }
-
-        order.setOrderItems(orderItems);
-        order.setTotalPrice(totalOrderPrice);
+        // 创建订单消息对象
+        Map<String, Object> orderMessage = new HashMap<>();
+        orderMessage.put("userId", userId);
+        orderMessage.put("address", address);
+        orderMessage.put("receiver", receiver);
+        orderMessage.put("tel", tel);
+        orderMessage.put("itemIds", itemIds);
 
         try {
-            orderService.placeOrder(order);
+            // 将订单消息发送到 Kafka 的 "order-topic"
+            kafkaTemplate.send("order-topic", userId.toString(), objectMapper.writeValueAsString(orderMessage));
+            System.out.println("Order message successfully sent to Kafka: " + orderMessage);
         } catch (Exception e) {
-            System.out.println("Error placing order");
+            System.out.println("Error sending order message to Kafka: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createResponse("Error placing order", false, null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createResponse("Failed to send order message to Kafka", false, null));
         }
 
-        return ResponseEntity.ok(createResponse("Order successfully placed", true, null));
+        System.out.println("Order sent to Kafka for user ID: " + userId + " with order details: " + orderMessage);
+        return ResponseEntity.ok(createResponse("Order message successfully sent to Kafka", true, null));
     }
-
-
 
     @GetMapping("/order")
     public ResponseEntity<?> getOrders(

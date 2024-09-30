@@ -9,6 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.klx.ebookbackend.service.SessionTimerService;
+import org.springframework.context.annotation.Scope;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
@@ -18,6 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
+// 不需要添加 @Scope 注解，保持默认的 @Scope("singleton") 即可
 public class UserController {
 
     private final UserService userService;
@@ -26,6 +30,8 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+    @Autowired
+    private SessionTimerService sessionTimerService;
 
     @PostMapping("/user/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> request) {
@@ -81,6 +87,9 @@ public class UserController {
             User user = userService.findByUsername(username);
             session.setAttribute("userId", user.getId());
 
+            // 登录成功后，启动计时器
+            sessionTimerService.startTimer();
+
             Map<String, Object> data = new HashMap<>();
             data.put("id", user.getId());
             data.put("username", user.getUsername());
@@ -100,13 +109,20 @@ public class UserController {
         }
     }
 
+
     @PutMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
+        // 停止计时器，并获取会话持续时间
+        long sessionDuration = sessionTimerService.stopTimer();
+
+        // 使当前会话失效
         session.invalidate();
+
         Map<String, Object> response = new HashMap<>();
         response.put("ok", true);
         response.put("message", "Logout successful!");
-        response.put("data", null);
+        response.put("sessionDuration", sessionDuration + " milliseconds"); // 返回会话持续时间
+
         return ResponseEntity.ok(response);
     }
 
