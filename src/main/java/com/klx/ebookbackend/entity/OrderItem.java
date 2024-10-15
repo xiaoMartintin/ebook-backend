@@ -47,15 +47,22 @@ public class OrderItem {
             book.setInventory(book.getInventory() - this.quantity);
             book.setSales(book.getSales() + this.quantity);
 
+            // 计算订单项总价，保留两位小数
+            double orderItemTotalPrice = roundToTwoDecimalPlaces(this.quantity * this.book.getPrice());
+
             // 更新用户余额
             User user = this.order.getUser();
-            double orderItemTotalPrice = this.quantity * this.book.getPrice();
             user.setBalance(user.getBalance() - orderItemTotalPrice);
 
             // 更新订单总价
             this.order.updateTotalPrice();
         }
     }
+
+    private double roundToTwoDecimalPlaces(double value) {
+        return Math.round(value * 100) / 100.0;
+    }
+
 
 //    贴合实际的话，是不能恢复的，因为不管你后来书怎么变，订单只要完成了，订单里的书的价格等信息就是买下时的状态
 

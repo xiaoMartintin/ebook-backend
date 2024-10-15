@@ -44,12 +44,10 @@ public class OrderServiceImpl implements OrderService {
      * 处理订单的创建、校验、保存逻辑。
      */
     @Override
-    @Transactional // 添加事务管理注解
+    @Transactional // 保持整个订单处理的事务性
     public Order processOrder(Integer userId, String address, String receiver, String tel, List<Integer> itemIds) {
-        User user = userService.getUserById(userId).orElse(null);
-        if (user == null) {
-            throw new RuntimeException("User not found with ID: " + userId);
-        }
+        User user = userService.getUserById(userId).orElseThrow(() ->
+                new RuntimeException("User not found with ID: " + userId));
 
         Order order = new Order();
         order.setUser(user);
@@ -61,24 +59,23 @@ public class OrderServiceImpl implements OrderService {
         Set<OrderItem> orderItems = new LinkedHashSet<>();
         double totalOrderPrice = 0.0;
 
+        // 首先计算总价，创建订单项（不保存）
         for (Integer itemId : itemIds) {
-            Optional<Cart> cartItem = cartService.getCartById(itemId);
+            Cart cartItem = cartService.getCartById(itemId).orElseThrow(() ->
+                    new RuntimeException("Cart item not found for ID: " + itemId));
 
-            if (cartItem.isPresent()) {
-                OrderItem orderItem = new OrderItem();
-                orderItem.setOrder(order);
-                orderItem.setBook(cartItem.get().getBook());
-                orderItem.setQuantity(cartItem.get().getQuantity());
-                totalOrderPrice += cartItem.get().getQuantity() * cartItem.get().getBook().getPrice();
-                orderItems.add(orderItem);
-            } else {
-                throw new RuntimeException("Cart item not found for ID: " + itemId);
-            }
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order); // 此时 order 尚未持久化
+            orderItem.setBook(cartItem.getBook());
+            orderItem.setQuantity(cartItem.getQuantity());
+            totalOrderPrice += cartItem.getQuantity() * cartItem.getBook().getPrice();
+
+            orderItems.add(orderItem);
         }
 
+        // 检查用户余额是否足够
         if (user.getBalance() < totalOrderPrice) {
-            throw new RuntimeException("Insufficient balance. Your current balance is: " + user.getBalance() +
-                    ", but total order price is: " + totalOrderPrice);
+            throw new RuntimeException("余额不足。当前余额：" + user.getBalance() + "，订单总价：" + totalOrderPrice);
         }
 
         // 扣除用户余额并设置订单信息
@@ -86,9 +83,28 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         order.setTotalPrice(totalOrderPrice);
 
-        // 保存订单
-        return placeOrder(order);
+        // 先保存订单（此时订单尚未保存，order 为瞬态对象）
+        try {
+            orderDao.saveOrder(order);
+        } catch (RuntimeException e) {
+            System.out.println("保存订单时发生异常：" + e.getMessage());
+            // 根据业务需求，决定是否需要重新抛出异常或设置事务回滚
+            throw e; // 如果需要回滚事务，可以重新抛出异常
+        }
+
+        // 保存订单项（此时订单已经持久化，可以正确引用）
+        for (OrderItem orderItem : orderItems) {
+            try {
+                orderItemDao.saveOrderItem(orderItem);
+            } catch (RuntimeException e) {
+                System.out.println("保存订单项时发生异常：" + e.getMessage());
+                // 根据需要处理异常，可能需要记录日志或采取补偿措施
+            }
+        }
+
+        return order;
     }
+
 
 
     @Override

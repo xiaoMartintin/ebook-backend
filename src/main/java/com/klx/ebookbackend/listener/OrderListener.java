@@ -1,6 +1,7 @@
 package com.klx.ebookbackend.listener;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.klx.ebookbackend.controller.WebSocketController;
 import com.klx.ebookbackend.entity.Order;
 import com.klx.ebookbackend.entity.OrderItem;
 import com.klx.ebookbackend.entity.Cart;
@@ -30,6 +31,10 @@ public class OrderListener {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
+    @Autowired
+    private WebSocketController webSocketController;
+
+
     private ObjectMapper objectMapper;
 
     public OrderListener() {
@@ -56,49 +61,38 @@ public class OrderListener {
             Order order = orderService.processOrder(userId, address, receiver, tel, itemIds);
             System.out.println("Order successfully processed for user: " + userId);
 
-            // 将处理结果发送到 "order-result-topic"
+            // 将处理结果发送到前端
             response.put("message", "Order for user " + userId + " processed successfully");
             response.put("ok", true);
             response.put("data", order);
 
-            // 将处理结果转为 JSON 字符串发送到 Kafka
-            kafkaTemplate.send("order-result-topic", userId.toString(), objectMapper.writeValueAsString(response));
-            System.out.println("Order result message sent to Kafka: " + response);
+            // 使用 WebSocketController 通过 WebSocket 向前端发送订单处理结果
+            webSocketController.sendOrderUpdate(userId.toString(), objectMapper.writeValueAsString(response));
+            System.out.println("Order result message sent to WebSocket: " + response);
 
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             // 捕获 JSON 解析异常并处理
             response.put("message", "JSON parsing error: " + e.getMessage());
             response.put("ok", false);
             response.put("data", null);
-            try {
-                kafkaTemplate.send("order-result-topic", "error", objectMapper.writeValueAsString(response));
-            } catch (com.fasterxml.jackson.core.JsonProcessingException jsonException) {
-                System.out.println("Failed to send error message to Kafka: " + jsonException.getMessage());
-            }
+            webSocketController.sendOrderUpdate("error", response.toString());
             System.out.println("Failed to process order due to JSON parsing error: " + e.getMessage());
         } catch (RuntimeException e) {
             // 捕获自定义异常（如余额不足）
             response.put("message", e.getMessage());
             response.put("ok", false);
             response.put("data", null);
-            try {
-                kafkaTemplate.send("order-result-topic", "error", objectMapper.writeValueAsString(response));
-            } catch (com.fasterxml.jackson.core.JsonProcessingException jsonException) {
-                System.out.println("Failed to send error message to Kafka: " + jsonException.getMessage());
-            }
+            webSocketController.sendOrderUpdate("error", response.toString());
             System.out.println("Failed to process order: " + e.getMessage());
         } catch (Exception e) {
             // 其他异常处理
             response.put("message", "Failed to process order message");
             response.put("ok", false);
             response.put("data", null);
-            try {
-                kafkaTemplate.send("order-result-topic", "error", objectMapper.writeValueAsString(response));
-            } catch (com.fasterxml.jackson.core.JsonProcessingException jsonException) {
-                System.out.println("Failed to send error message to Kafka: " + jsonException.getMessage());
-            }
+            webSocketController.sendOrderUpdate("error", response.toString());
             System.out.println("Failed to process order message");
             e.printStackTrace();
         }
     }
+
 }

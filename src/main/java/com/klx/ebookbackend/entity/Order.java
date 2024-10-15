@@ -41,16 +41,24 @@ public class Order {
     @Column(name = "tel", nullable = false)
     private String tel;
 
-    @Column(name = "total_price", nullable = false)
-    private Double totalPrice;
+    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    private double totalPrice;
+
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
 
     public void updateTotalPrice() {
-        this.totalPrice = this.orderItems.stream()
-                .mapToDouble(item -> item.getQuantity() * item.getBook().getPrice())
-                .sum();
+        this.totalPrice = roundToTwoDecimalPlaces(
+                this.orderItems.stream()
+                        .mapToDouble(item -> item.getQuantity() * item.getBook().getPrice())
+                        .sum()
+        );
     }
+
+    private double roundToTwoDecimalPlaces(double value) {
+        return Math.round(value * 100) / 100.0;
+    }
+
 }

@@ -28,7 +28,7 @@ public class User {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "balance", nullable = false)
+    @Column(name = "balance", nullable = false, precision = 10, scale = 2)
     private Double balance;
 
     @Column(name = "email", nullable = false)
