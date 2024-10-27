@@ -16,10 +16,13 @@ public class CorsConfig {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true); // Allow cookies to be included
+        config.addExposedHeader("Authorization"); // Expose necessary headers for WebSocket
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
     }
+
+
 }
