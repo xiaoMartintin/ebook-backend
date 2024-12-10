@@ -20,7 +20,12 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> searchBooks(String keyword, int pageIndex, int pageSize) {
-        return bookDao.searchBooks(keyword, pageIndex, pageSize);
+        // 判断是否是标签搜索
+        if (bookDao.isTag(keyword)) {
+            return bookDao.findBooksByTagRelation(keyword);
+        } else {
+            return bookDao.searchBooks(keyword, pageIndex, pageSize);
+        }
     }
 
     @Override

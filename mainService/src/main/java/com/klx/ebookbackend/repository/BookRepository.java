@@ -35,9 +35,15 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @Override
     Optional<Book> findById(Integer integer);
 
-    @Query("SELECT b.id, b.title, b.author, b.description, b.price, b.cover, SUM(oi.quantity) as sales " +
+//    @Query("SELECT b.id, b.title, b.author, b.description, b.price, b.cover, SUM(oi.quantity) as sales " +
+//            "FROM OrderItem oi JOIN oi.book b " +
+//            "GROUP BY b.id, b.title, b.author, b.description, b.price, b.cover " +
+//            "ORDER BY SUM(oi.quantity) DESC")
+//    List<Object[]> findTopSellingBooks();
+
+    @Query("SELECT b.id, b.title, b.author, b.price, SUM(oi.quantity) as sales " +
             "FROM OrderItem oi JOIN oi.book b " +
-            "GROUP BY b.id, b.title, b.author, b.description, b.price, b.cover " +
+            "GROUP BY b.id, b.title, b.author, b.price " +
             "ORDER BY SUM(oi.quantity) DESC")
     List<Object[]> findTopSellingBooks();
 }

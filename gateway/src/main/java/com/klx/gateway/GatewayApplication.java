@@ -27,6 +27,8 @@ public class GatewayApplication {
                 .route("ebookbackend_route", r -> r.path("/**")
                         .filters(f -> f)
                         .uri("lb://EbookBackend"))
+                .route("websocket_route", r -> r.path("/ws/**")
+                        .uri("lb:ws://localhost:8082"))
                 .build();
     }
 

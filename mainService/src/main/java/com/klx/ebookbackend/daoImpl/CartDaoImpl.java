@@ -4,8 +4,8 @@ import com.klx.ebookbackend.dao.CartDao;
 import com.klx.ebookbackend.entity.Book;
 import com.klx.ebookbackend.entity.Cart;
 import com.klx.ebookbackend.entity.User;
+import com.klx.ebookbackend.dao.BookDao;
 import com.klx.ebookbackend.repository.CartRepository;
-import com.klx.ebookbackend.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,8 +22,9 @@ public class CartDaoImpl implements CartDao {
     @Autowired
     private CartRepository cartRepository;
 
+
     @Autowired
-    private BookRepository bookRepository;
+    private BookDao bookDao;
 
     @Override
     public List<Cart> getAllCarts() {
@@ -50,7 +51,8 @@ public class CartDaoImpl implements CartDao {
         Page<Cart> cartItems = cartRepository.findByUserId(userId, pageable);
         // 确保每个Cart对象都有一个非空的Book对象
         for (Cart cart : cartItems) {
-            cart.setBook(bookRepository.findById(cart.getBook().getId()).orElse(null));
+            // 使用 BookDao 获取书籍信息
+            cart.setBook(bookDao.getBookById(cart.getBook().getId()));
             if (cart.getBook() == null) {
                 throw new IllegalStateException("Cart item is missing book information");
             }

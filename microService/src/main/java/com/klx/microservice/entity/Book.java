@@ -34,13 +34,15 @@ public class Book {
     @Column(name = "price")
     private Double price = 0.00;
 
-    @Column(name = "description", length = 2000)
+    //    @Column(name = "description", length = 2000)
+// 移除数据库映射的字段，改为普通属性
     private String description = "暂无描述";
 
     @Column(name = "inventory", nullable = false)
     private Integer inventory = 0;
 
-    @Column(name = "image", nullable = false)
+    //    @Column(name = "image", nullable = false)
+// 移除数据库映射的字段，改为普通属性
     private String cover;
 
     @Column(name = "sales", nullable = false, columnDefinition = "int default 0")
