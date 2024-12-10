@@ -174,7 +174,14 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public boolean isTag(String keyword) {
-        return tagRepository.existsByName(keyword);
+        try {
+            List<Tag> tags = tagRepository.findByNameContaining(keyword);
+            return !tags.isEmpty();
+        } catch (Exception e) {
+            // 在此处进行异常处理，可以选择记录日志
+            // logger.error("查询标签时发生异常", e);
+            return false;
+        }
     }
 
     /**
@@ -225,7 +232,11 @@ public class BookDaoImpl implements BookDao {
     @Override
     public List<Book> findBooksByTagRelation(String tagName) {
         // 查询标签及其两跳范围内的相关标签，包括自身
-        List<Tag> relatedTags = tagRepository.findTagsWithinTwoHopsIncludingSelf(tagName);
+        List<Tag> relatedTags = tagRepository.findByNameContaining(tagName)
+                .stream()
+                .flatMap(t -> tagRepository.findTagsWithinTwoHopsIncludingSelf(t.getName()).stream())
+                .distinct()
+                .collect(Collectors.toList());
 
         // 收集所有关联标签的书籍 ID
         Set<Integer> bookIDs = new HashSet<>();

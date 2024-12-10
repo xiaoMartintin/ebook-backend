@@ -17,8 +17,8 @@ public interface TagRepository extends Neo4jRepository<Tag, Long> {
        """)
     List<Tag> findTagsWithinTwoHopsIncludingSelf(@Param("name") String name);
 
-    // 根据标签名称模糊查询
-    List<Tag> findByNameContaining(String name);
+    @Query("MATCH (t:Tag) WHERE t.name CONTAINS $name RETURN t")
+    List<Tag> findByNameContaining(@Param("name") String name);
 
     boolean existsByName(String name);
 }
