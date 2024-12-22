@@ -19,7 +19,7 @@ public class SessionConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(sessionInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/api/login", "/api/register", "/websocket/**"); // 确保 WebSocket 握手路径被排除
+                .excludePathPatterns("/api/login", "/api/register", "/api/graphql", "/api/graphql", "/api/graphql/**", "/websocket/**"); // 排除 /api/graphql 和 WebSocket
     }
 
 

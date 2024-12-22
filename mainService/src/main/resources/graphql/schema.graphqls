@@ -1,0 +1,26 @@
+# schema.graphqls
+
+type Query {
+    # 依然保持 searchBooksByName 的查询
+    # 同时声明必要的参数
+    searchBooksByName(keyword: String!, pageIndex: Int!, pageSize: Int!): PagedBooks
+}
+
+type PagedBooks {
+    # 使用 items 而非 books
+    items: [Book]
+    total: Int
+}
+
+type Book {
+    # 根据 Book.java 的字段，进行对应
+    id: ID
+    isbn: String
+    title: String
+    author: String
+    price: Float
+    description: String
+    cover: String
+    inventory: Int
+    sales: Int
+}

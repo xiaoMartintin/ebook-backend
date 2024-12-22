@@ -26,7 +26,7 @@ public class SessionInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
 
         // Allow requests to /register and /login without session validation
-        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login")) {
+        if (requestURI.equals("/api/user/register") || requestURI.equals("/api/user/login") || requestURI.equals("/api/graphql")) {
             return true;
         }
 
