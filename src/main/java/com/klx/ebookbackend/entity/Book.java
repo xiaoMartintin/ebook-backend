@@ -15,7 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "books")
+@Table(name = "books_for_basic_version")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Book {
     @Id
@@ -41,7 +41,7 @@ public class Book {
     @Column(name = "inventory", nullable = false)
     private Integer inventory = 0;
 
-    @Column(name = "image", nullable = false)
+    @Column(name = "cover", nullable = false)
     private String cover;
 
     @Column(name = "sales", nullable = false, columnDefinition = "int default 0")
