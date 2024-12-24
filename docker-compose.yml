@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.3
+    container_name: ebook-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ebook
+    ports:
+      - "3307:3306"
+    volumes:
+#      - /var/lib/mysql-data:/var/lib/mysql  # 使用宿主机目录绑定 MySQL 数据目录
+      - mysql_data:/var/lib/mysql
+    restart: always
+    command: --sql-mode="NO_ENGINE_SUBSTITUTION"
+
+  springboot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ebook-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ebook?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2b8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_DATASOURCE_TOMCAT_MAX_ACTIVE: 20
+      SPRING_JPA_DATABASE: mysql
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "false"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql
+    restart: always
+
+volumes:
+  mysql_data:

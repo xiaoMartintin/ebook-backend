@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.klx</groupId>
-    <artifactId>mainService</artifactId>
+    <artifactId>ebook-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>ebook-backend</name>
     <description>ebook-backend</description>
